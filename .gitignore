@@ -1,0 +1,11 @@
+.env
+.venv/
+data/*
+!data/README.md
+models/*
+!models/.gitkeep
+runs/*
+!runs/EXAMPLE_*/
+__pycache__/
+*.pyc
+.ipynb_checkpoints/

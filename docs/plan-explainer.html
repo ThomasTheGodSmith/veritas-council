@@ -1,0 +1,409 @@
+<title>Market Council Plan</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one reading column (~760px) with wider bands for the pipeline and tables; sections separated by space, not boxes. */
+:root {
+  --bg: #f6f7f5;
+  --surface: #ffffff;
+  --ink: #17201c;
+  --muted: #56625c;
+  --line: #d9dfdb;
+  --accent: #1f6f5c;       /* council green: the colour of a passed check */
+  --accent-soft: #e2efea;
+  --warn: #9a5b00;
+  --warn-soft: #f8ecd9;
+  --stop: #a3342b;
+  --stop-soft: #f6e2df;
+  --font-display: "Space Grotesk", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Inter", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #111613; --surface: #182019; --ink: #e5ebe7; --muted: #9aa8a0; --line: #2b3630;
+    --accent: #5fc3a6; --accent-soft: #1b3129; --warn: #e2a64d; --warn-soft: #34291a;
+    --stop: #ef8a80; --stop-soft: #3a2220; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #111613; --surface: #182019; --ink: #e5ebe7; --muted: #9aa8a0; --line: #2b3630;
+  --accent: #5fc3a6; --accent-soft: #1b3129; --warn: #e2a64d; --warn-soft: #34291a;
+  --stop: #ef8a80; --stop-soft: #3a2220; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--ink);
+  font-family: var(--font-body); font-size: 16px; line-height: 1.6;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 0 64px;
+}
+.wrap { max-width: 980px; margin: 0 auto; }
+.col { max-width: 720px; }
+h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; line-height: 1.2; margin: 0; }
+h1 { font-size: clamp(2rem, 5vw, 2.9rem); font-weight: 700; letter-spacing: -0.02em; }
+h2 { font-size: 1.55rem; font-weight: 600; letter-spacing: -0.01em; }
+h3 { font-size: 1.08rem; font-weight: 600; }
+p { margin: 0; }
+a { color: var(--accent); }
+code, .mono { font-family: var(--font-mono); font-size: 0.86em; }
+.eyebrow { font-family: var(--font-mono); font-size: 0.75rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.lede { font-size: 1.15rem; color: var(--ink); }
+.muted { color: var(--muted); }
+section { display: grid; gap: 18px; padding-block: 44px 0; }
+section > header { display: grid; gap: 6px; }
+.stack { display: grid; gap: 12px; }
+
+/* top */
+.top { display: grid; gap: 18px; padding-block: 48px 8px; }
+.disclaimer {
+  display: inline-flex; align-items: center; gap: 8px; justify-self: start;
+  font-size: 0.85rem; color: var(--warn); background: var(--warn-soft);
+  border-radius: 6px; padding: 6px 10px;
+}
+.facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.fact { background: var(--surface); padding: 14px 16px; display: grid; gap: 2px; min-width: 0; }
+.fact b { font-family: var(--font-display); font-weight: 600; font-size: 1.02rem; }
+.fact span { font-size: 0.85rem; color: var(--muted); }
+
+/* question callout */
+.question { border-left: 3px solid var(--accent); padding: 4px 0 4px 18px; display: grid; gap: 8px; }
+.question p:first-child { font-family: var(--font-display); font-size: 1.3rem; font-weight: 600; line-height: 1.35; }
+
+/* user story */
+.story { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 18px; display: grid; gap: 10px; align-content: start; min-width: 0; }
+.panel ul { margin: 0; padding-left: 18px; display: grid; gap: 4px; }
+.rule { font-family: var(--font-mono); font-size: 0.85rem; }
+
+/* pipeline */
+.pipe { display: grid; gap: 0; }
+.step { display: grid; grid-template-columns: 44px 1fr; gap: 14px; }
+.step .rail { display: grid; justify-items: center; grid-template-rows: auto 1fr; }
+.step .num {
+  width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center;
+  font-family: var(--font-mono); font-size: 0.85rem; font-weight: 500;
+  background: var(--accent-soft); color: var(--accent); border: 1px solid var(--accent);
+}
+.step .line { width: 1px; background: var(--line); min-height: 18px; }
+.step:last-child .line { display: none; }
+.step .body { padding-bottom: 22px; display: grid; gap: 4px; min-width: 0; }
+.step .body .tag { font-size: 0.78rem; color: var(--muted); font-family: var(--font-mono); }
+.loop { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 6px; }
+.btn { font-weight: 600; font-size: 0.9rem; padding: 7px 12px; border-radius: 7px; border: 1px solid; }
+.btn.go { color: var(--accent); background: var(--accent-soft); border-color: var(--accent); }
+.btn.no { color: var(--stop); background: var(--stop-soft); border-color: var(--stop); }
+
+/* tables */
+.tablewrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); }
+table { border-collapse: collapse; width: 100%; font-size: 0.92rem; }
+th, td { text-align: left; vertical-align: top; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+tr:last-child td { border-bottom: 0; }
+th { font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); font-weight: 500; background: var(--bg); white-space: nowrap; }
+td.n { font-family: var(--font-mono); color: var(--muted); white-space: nowrap; }
+td .say { color: var(--muted); font-style: italic; }
+.tabular { font-variant-numeric: tabular-nums; }
+
+/* pills */
+.pill { display: inline-block; font-family: var(--font-mono); font-size: 0.72rem; padding: 2px 8px; border-radius: 999px; white-space: nowrap; border: 1px solid; }
+.pill.done { color: var(--accent); border-color: var(--accent); background: var(--accent-soft); }
+.pill.now { color: var(--warn); border-color: var(--warn); background: var(--warn-soft); }
+.pill.next { color: var(--muted); border-color: var(--line); }
+.pill.gap { color: var(--stop); border-color: var(--stop); background: var(--stop-soft); }
+
+/* split bar */
+.splits { display: grid; gap: 14px; }
+.splitrow { display: grid; grid-template-columns: 120px 1fr; gap: 12px; align-items: center; }
+.splitrow .label { font-size: 0.88rem; font-weight: 600; }
+.bar { display: flex; height: 30px; border-radius: 6px; overflow: hidden; font-family: var(--font-mono); font-size: 0.72rem; min-width: 0; }
+.bar div { display: grid; place-items: center; white-space: nowrap; overflow: hidden; padding: 0 4px; }
+.bar .tr { background: var(--accent-soft); color: var(--accent); }
+.bar .va { background: var(--warn-soft); color: var(--warn); }
+.bar .te { background: var(--stop-soft); color: var(--stop); }
+.legend { display: flex; flex-wrap: wrap; gap: 16px; font-size: 0.85rem; color: var(--muted); }
+.legend i { display: inline-block; width: 12px; height: 12px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; }
+
+/* two-up lists */
+.grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
+ul.clean { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+ul.clean li { display: grid; grid-template-columns: 18px 1fr; gap: 8px; }
+ul.clean li::before { content: "–"; color: var(--muted); }
+ul.checks li::before { content: "✓"; color: var(--accent); font-weight: 600; }
+ul.crosses li::before { content: "×"; color: var(--stop); font-weight: 600; }
+
+/* timeline */
+.timeline { display: grid; gap: 0; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; background: var(--surface); }
+.tl { display: grid; grid-template-columns: 150px 1fr auto; gap: 14px; padding: 14px 16px; border-bottom: 1px solid var(--line); align-items: start; }
+.tl:last-child { border-bottom: 0; }
+.tl.current { background: var(--warn-soft); }
+.tl .when { font-family: var(--font-mono); font-size: 0.82rem; color: var(--muted); }
+.tl .what { display: grid; gap: 2px; min-width: 0; }
+.tl .what small { color: var(--muted); font-size: 0.85rem; }
+@media (max-width: 560px) {
+  .tl { grid-template-columns: 1fr auto; }
+  .tl .when { grid-column: 1 / -1; }
+  .splitrow { grid-template-columns: 1fr; gap: 6px; }
+}
+footer { padding-block: 48px 0; color: var(--muted); font-size: 0.85rem; display: grid; gap: 6px; }
+</style>
+
+<div class="wrap">
+
+  <div class="top">
+    <span class="eyebrow">Veritas AI High School Hackathon 2026 · AI + Finance track</span>
+    <h1>Market Council</h1>
+    <p class="lede col">A council of AI models, each trained by us from scratch, that stress-tests a planned investment in the Dow Jones before a first-time investor puts money in. It can, and often should, say "don't buy".</p>
+    <span class="disclaimer">This project is a prototype and is not financial advice.</span>
+    <div class="facts">
+      <div class="fact"><b>Mon 16 Nov, 12:59 SGT</b><span>Submission deadline (Sun 23:59 ET)</span></div>
+      <div class="fact"><b>Mon 16 Nov, 09:00 SGT</b><span>Our target for the first submission</span></div>
+      <div class="fact"><b>Dow + 30 companies</b><span>What the user can invest in (via the DIA fund)</span></div>
+      <div class="fact"><b>Paper money only</b><span>Orders go to a simulator or Alpaca paper trading</span></div>
+    </div>
+  </div>
+
+  <section>
+    <header>
+      <span class="eyebrow">The idea</span>
+      <h2>Who it's for, and what goes in and out</h2>
+    </header>
+    <div class="story">
+      <div class="panel">
+        <h3>The user</h3>
+        <p>A 17-year-old with S$500 who wants to buy "the Dow", or one Dow company like Apple. They have a hunch and some rules about how much they can afford to lose.</p>
+      </div>
+      <div class="panel">
+        <h3>What goes in</h3>
+        <ul>
+          <li>A ticker: <code>DJIA (DIA)</code> or one of the 30 members</li>
+          <li>An amount, e.g. S$500</li>
+          <li>Hard rules, e.g. <span class="rule">max loss S$50 · 20 trading days · no banks</span></li>
+          <li>Their own idea: "I think it'll go up"</li>
+        </ul>
+      </div>
+      <div class="panel">
+        <h3>What comes out</h3>
+        <ul>
+          <li>A verdict: <b>BUY S$350</b>, <b>WAIT</b> or <b>DON'T BUY</b></li>
+          <li>A plain-English report showing which models agree with the user and which challenge them</li>
+          <li>One folder per model, holding its own decision and reasons</li>
+          <li>Two buttons: approve (places a paper order) or decline (give a reason, and the council re-runs)</li>
+        </ul>
+      </div>
+    </div>
+    <div class="question col">
+      <p>Does a council of self-trained models make safer decisions than any single model, a simple majority vote, or simple rules like buy-and-hold?</p>
+      <p class="muted">This is our own question, which the brief rewards. We expect "always buy" to be hard to beat on accuracy, because the Dow has risen in most 20-day windows since 1992. The council's realistic win is safety: fewer broken loss limits and smaller drawdowns. If the honest answer is "not much", we report that.</p>
+    </div>
+  </section>
+
+  <section>
+    <header>
+      <span class="eyebrow">How a decision is made</span>
+      <h2>From the user's plan to a verdict, in order</h2>
+    </header>
+    <div class="pipe col">
+      <div class="step"><div class="rail"><span class="num">1</span><span class="line"></span></div>
+        <div class="body"><h3>Historian gathers the evidence</h3><p>A store that only ever returns data dated <i>before</i> the decision day, plus every model's past predictions and a "find similar past situations" search.</p><span class="tag">storage · never votes</span></div></div>
+      <div class="step"><div class="rail"><span class="num">2</span><span class="line"></span></div>
+        <div class="body"><h3>Round 1: every analyst predicts on its own</h3><p>Eleven models each give a probability that the price is higher in 20 trading days, and say whether they support or challenge the user's idea.</p><span class="tag">11 voting analysts + a Fundamentals info card</span></div></div>
+      <div class="step"><div class="rail"><span class="num">3</span><span class="line"></span></div>
+        <div class="body"><h3>Round 2: cross-examination</h3><p>For each pair that disagrees today, the Historian checks who was right when they disagreed like this before. The Devil's Advocate model estimates how often the majority is wrong in situations like this one.</p><span class="tag">the debate, done with data</span></div></div>
+      <div class="step"><div class="rail"><span class="num">4</span><span class="line"></span></div>
+        <div class="body"><h3>Checklist</h3><p>Code checks every hard rule (✅ or ❌, and nothing can overrule a ❌). It also lists the positives and negatives of each analyst from its real track record.</p><span class="tag">rules are code, not a model</span></div></div>
+      <div class="step"><div class="rail"><span class="num">5</span><span class="line"></span></div>
+        <div class="body"><h3>Mediator</h3><p>A trained stacking model learns how much to trust each analyst, and when. It combines them into one probability and builds 1–3 plans, possibly including its own, such as a split entry. Any plan that breaks a rule is fixed or dropped.</p><span class="tag">trained on the validation years</span></div></div>
+      <div class="step"><div class="rail"><span class="num">6</span><span class="line"></span></div>
+        <div class="body"><h3>Judge</h3><p>Buy only if the council's probability clears a threshold, the expected return is positive and every rule passes. The amount uses half-Kelly sizing, capped by the Risk Officer's maximum safe amount.</p><span class="tag">threshold tuned on validation, never on test</span></div></div>
+      <div class="step"><div class="rail"><span class="num">7</span><span class="line"></span></div>
+        <div class="body"><h3>Report, then the user decides</h3><p>Claude Opus 5.5 turns the finished results into a readable report. It never sees market data or news and cannot change the decision. Code checks that every number it writes matches the models' output, and falls back to a template if one doesn't.</p>
+          <div class="loop"><span class="btn go">✅ Approve &amp; Invest → paper order</span><span class="btn no">❌ Decline + reason → back to step 2</span></div></div></div>
+    </div>
+  </section>
+
+  <section>
+    <header>
+      <span class="eyebrow">The council</span>
+      <h2>Eleven analysts, each looking at the market a different way</h2>
+      <p class="muted col">Every model is trained from scratch on our datasets, on the training years only. No pretrained models (no FinBERT, no LLMs) make any prediction, so none of them can already "know" what happened in the test years. The number is the build order: if time runs short, the lowest priorities are cut first.</p>
+    </header>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>Build #</th><th>Analyst</th><th>Method</th><th>What it tells the user</th></tr></thead>
+        <tbody>
+          <tr><td class="n">1</td><td><b>Momentum</b></td><td>Logistic regression on moving averages, RSI, MACD</td><td class="say">"The trend is up, and trends like this usually continue."</td></tr>
+          <tr><td class="n">2</td><td><b>Risk Officer</b></td><td>GARCH volatility, Value-at-Risk, 10,000 Monte Carlo price paths</td><td class="say">"A bad month could cost S$70. The most you can safely put in is S$350."</td></tr>
+          <tr><td class="n">3</td><td><b>ML Forecaster</b></td><td>LightGBM gradient-boosted trees on price, volume, VIX, yields, dollar, oil</td><td class="say">A probability, plus the features that mattered most</td></tr>
+          <tr><td class="n">4</td><td><b>Dow Breadth &amp; Weights</b></td><td>Combines member forecasts by their real Dow price weight, plus breadth</td><td class="say">"The 5 heaviest stocks are weakening even though the index looks fine."</td></tr>
+          <tr><td class="n">5</td><td><b>News-Reaction</b></td><td>Our own TF-IDF text model plus a similar-headline search</td><td class="say">"The 20 headlines most like today's were followed by a rise 14 times."</td></tr>
+          <tr><td class="n">6</td><td><b>Pattern Oracle</b></td><td>A tiny GPT-style transformer that predicts the next "price token", like an LLM predicts the next word</td><td class="say">"131 of 200 imagined futures ended higher."</td></tr>
+          <tr><td class="n">7</td><td><b>Raw Reader</b></td><td>A small 1D CNN reading only 120 days of raw price and volume</td><td class="say">Its gut read of the chart's shape</td></tr>
+          <tr><td class="n">8</td><td><b>Mean Reversion</b></td><td>Logistic regression on z-score and Bollinger bands</td><td class="say">"The price is stretched and tends to snap back."</td></tr>
+          <tr><td class="n">9</td><td><b>Market Regime</b></td><td>3-state Hidden Markov Model (bull / bear / choppy)</td><td class="say">The current mood, and which analysts do well in it</td></tr>
+          <tr><td class="n">10</td><td><b>Devil's Advocate</b></td><td>LightGBM trained to predict when the majority of analysts is wrong</td><td class="say">"In setups like this the majority was wrong 46% of the time."</td></tr>
+          <tr><td class="n">11</td><td><b>Macro</b></td><td>Logistic regression on rates, yield curve, inflation, VIX</td><td class="say">"The economy is a headwind."</td></tr>
+          <tr><td class="n">info</td><td><b>Fundamentals</b></td><td>P/E, debt, growth, shown as facts</td><td class="say">No vote, and never used in backtests (no point-in-time history)</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <header>
+      <span class="eyebrow">The data</span>
+      <h2>What we have, and where it falls short</h2>
+      <p class="muted col">Everything is downloaded or rebuilt by scripts in <code>scripts/</code>, so anyone can reproduce it. Prices run to the close on Fri 13 Nov 2026. Full details are in <code>data/README.md</code>.</p>
+    </header>
+    <div class="tablewrap">
+      <table class="tabular">
+        <thead><tr><th>Dataset</th><th>Coverage</th><th>Source</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr><td>Dow index (^DJI)</td><td>1992 → 2026</td><td>Yahoo Finance</td><td><span class="pill done">ready</span></td></tr>
+          <tr><td>DIA fund, for paper orders</td><td>1998 → 2026</td><td>Yahoo Finance</td><td><span class="pill done">ready</span></td></tr>
+          <tr><td>Member prices + splits</td><td>49 tickers, 1990 → 2026</td><td>Yahoo Finance</td><td><span class="pill done">ready</span></td></tr>
+          <tr><td>Who was in the Dow, and when</td><td>60 membership spells, 1991 → today</td><td>Wikipedia, hand-mapped</td><td><span class="pill done">ready</span></td></tr>
+          <tr><td>World news (top 25 r/worldnews per day)</td><td>2008–2016 and 2021–2026</td><td>Kaggle + Arctic Shift archive</td><td><span class="pill now">backfilling 2016–21</span></td></tr>
+          <tr><td>Company news</td><td>2009 → Jun 2020</td><td>Kaggle (Massive Stock News)</td><td><span class="pill gap">ends before test years</span></td></tr>
+          <tr><td>Macro: rates, yield curve, CPI, jobs, VIX, oil, dollar</td><td>before 1992 → 2026</td><td>FRED + Yahoo Finance</td><td><span class="pill done">ready</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="grid2">
+      <div class="panel">
+        <h3>How we checked it</h3>
+        <p>The Dow is <b>price-weighted</b>: the index equals the sum of its 30 members' real prices divided by a "divisor". If our membership table and split-corrected prices are right, that divisor should stay flat. It does: <span class="mono">0.168</span> today, moving a median of 0.0009% a day. It jumps only on real events, like Apple joining in 2015, Nike's 2-for-1 split and Alphabet joining in June 2026.</p>
+      </div>
+      <div class="panel">
+        <h3>Gaps we'll report</h3>
+        <ul>
+          <li>Companies that went bust or were bought out (Sears, Texaco, Kodak, Walgreens…) have no price history. Only 20 of 30 members have prices in the 1990s, and 29–30 in our test years.</li>
+          <li>Company news stops in 2020, so in the test years News-Reaction uses world headlines only.</li>
+          <li>CPI and jobs numbers are published weeks late, so we shift them to their release date to avoid leakage.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <header>
+      <span class="eyebrow">How we test it</span>
+      <h2>Train on the past, test on years no model has seen</h2>
+      <p class="muted col">Splits are by date, never random, with one cutoff for every dataset, set by the Dow's 35 years (1992–2026). The newest 20% of years (7) is the test set, and the rest is training. The newest ~15% of the training years is a validation slice for tuning the Mediator, Devil's Advocate and Judge. Training and test data are written to <b>separate folders</b>. Training code can only open the training folder, so it doesn't have the test years at all. Tests check this every run.</p>
+    </header>
+    <div class="splits">
+      <div class="splitrow"><span class="label">Prices + macro</span>
+        <div class="bar"><div class="tr" style="flex:24">train 1992–2015</div><div class="va" style="flex:4">val 2016–19</div><div class="te" style="flex:7">test 2020–26</div></div></div>
+      <div class="splitrow"><span class="label">News</span>
+        <div class="bar"><div style="flex:16"></div><div class="tr" style="flex:8">train 2008–15</div><div class="va" style="flex:4">val 2016–19</div><div class="te" style="flex:7">test 2020–26</div></div></div>
+      <div class="splitrow"><span class="label">Whole council</span>
+        <div class="bar"><div style="flex:28"></div><div class="te" style="flex:7">scored on 2020–26</div></div></div>
+      <div class="legend"><span><i style="background:var(--accent-soft);border:1px solid var(--accent)"></i>training</span><span><i style="background:var(--warn-soft);border:1px solid var(--warn)"></i>validation (still training data)</span><span><i style="background:var(--stop-soft);border:1px solid var(--stop)"></i>test, used only for final scores</span></div>
+    </div>
+    <p class="col">Every 5 trading days in the test window, for the Dow and for each company that was a member on that date, a fixed example user ("wants to buy, max loss 10%, 20 days") gets a buy / wait / avoid decision. Each decision is scored on what the price actually did over the next 20 days.</p>
+    <div class="grid2">
+      <div class="panel">
+        <h3>Baselines the council must beat</h3>
+        <ul class="clean">
+          <li>Always buy (buy-and-hold)</li>
+          <li>Same direction as the last 20 days</li>
+          <li>Buy only if the price is above its 50-day average</li>
+          <li>The best single analyst on its own</li>
+          <li><b>A simple majority vote</b> of the analysts, with no Mediator, Devil's Advocate or debate. This is the key comparison.</li>
+        </ul>
+      </div>
+      <div class="panel">
+        <h3>What we measure</h3>
+        <ul class="clean">
+          <li>Accuracy, and the Brier score (are the probabilities honest?)</li>
+          <li>Average return of "buy" decisions, Sharpe ratio, worst drawdown</li>
+          <li><b>% of decisions that broke the user's loss limit</b>, the safety number</li>
+          <li>How often challenging the user's idea turned out right</li>
+          <li>Ablations: with vs without the Devil's Advocate, stacking vs simple average, Pattern Oracle vs Raw Reader</li>
+          <li>At least one case where the council was confidently wrong, and why</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <header>
+      <span class="eyebrow">Ground rules</span>
+      <h2>What keeps the results honest and the user safe</h2>
+    </header>
+    <div class="grid2">
+      <ul class="clean checks">
+        <li><span><b>No look-ahead.</b> Anything given a decision date only sees data from before it, with a unit test that proves it.</span></li>
+        <li><span><b>Fit on training years only:</b> model weights, scalers, word vocabularies, token bins, the HMM and GARCH.</span></li>
+        <li><span><b>Training prices are frozen as of 31 Dec 2019.</b> Yahoo adjusts old prices for splits that happened later, which quietly encodes the future, so the training folder undoes that.</span></li>
+        <li><span><b>Point-in-time membership.</b> In 2010 the council only knows the 2010 Dow, not today's winners, which avoids survivorship bias.</span></li>
+        <li><span><b>Real prices for weights.</b> Apple's 4-for-1 split cut its Dow weight by about 75% overnight, so we undo split adjustments.</span></li>
+      </ul>
+      <ul class="clean crosses">
+        <li><span><b>No live trading.</b> Orders go only to Alpaca's paper endpoint or a local simulator. Real brokers need users to be 18+.</span></li>
+        <li><span><b>Claude never predicts.</b> It only writes the report from finished results, and the app works without it.</span></li>
+        <li><span><b>The Judge can't override a broken rule.</b> A ❌ on the checklist blocks the plan.</span></li>
+        <li><span><b>No hiding weak results.</b> If a test result beats the baselines by a suspicious margin, we look for leakage first.</span></li>
+      </ul>
+    </div>
+  </section>
+
+  <section>
+    <header>
+      <span class="eyebrow">The next 27 hours</span>
+      <h2>Timeline (Singapore time)</h2>
+    </header>
+    <div class="timeline">
+      <div class="tl"><span class="when">Sun morning</span><div class="what"><b>Plan, repo and datasets</b><small>Scaffold moved to D:\code\veritas_council, uv + Python 3.11, all datasets fetched and checked</small></div><span class="pill done">done</span></div>
+      <div class="tl"><span class="when">Sun late morning</span><div class="what"><b>Loaders, date split, split tests</b><small>Separate train (1992–2019) and test (2020–2026) folders; 16 tests pass</small></div><span class="pill done">done</span></div>
+      <div class="tl current"><span class="when">Sun afternoon</span><div class="what"><b>Historian and leakage tests</b><small>Check: no row on or after the decision date is ever returned</small></div><span class="pill now">now</span></div>
+      <div class="tl"><span class="when">Sun evening</span><div class="what"><b>First analysts + baselines scored</b><small>Momentum, Risk Officer, ML Forecaster, Dow Breadth; majority vote and "always buy" on the test window</small></div><span class="pill next">next</span></div>
+      <div class="tl"><span class="when">Sun night</span><div class="what"><b>Council logic, report and app end to end</b><small>One input in, report out, ✅ places a paper order</small></div><span class="pill next">next</span></div>
+      <div class="tl"><span class="when">Mon early</span><div class="what"><b>Remaining analysts, full evaluation, failure case</b><small>News-Reaction, Pattern Oracle, Raw Reader and the rest, as time allows</small></div><span class="pill next">next</span></div>
+      <div class="tl"><span class="when">Mon 09:00</span><div class="what"><b>Write-up, video, first submission</b><small>All links checked in an incognito window</small></div><span class="pill next">next</span></div>
+      <div class="tl"><span class="when">Mon → 12:59</span><div class="what"><b>Polish and resubmit</b><small>Judges see only the last version sent before the deadline</small></div><span class="pill next">next</span></div>
+    </div>
+    <div class="grid2">
+      <div class="panel">
+        <h3>If we fall behind, cut in this order</h3>
+        <ul class="clean">
+          <li>The last analysts in the build order</li>
+          <li>The Alpaca connection (keep the simulator)</li>
+          <li>The Mediator's own plans (keep standard plans)</li>
+          <li>PDF export (keep HTML)</li>
+        </ul>
+      </div>
+      <div class="panel">
+        <h3>Never cut</h3>
+        <ul class="clean checks">
+          <li><span>Baselines</span></li>
+          <li><span>Date splits and leakage tests</span></li>
+          <li><span>Failure examples</span></li>
+          <li><span>The disclaimer</span></li>
+          <li><span>A 20-minute walkthrough so every teammate can explain every model at the finals</span></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <header>
+      <span class="eyebrow">What we hand in</span>
+      <h2>Submission checklist</h2>
+    </header>
+    <ul class="clean col">
+      <li>Public GitHub repo, with the evaluation notebook saved with its outputs</li>
+      <li>One-page write-up: problem, what we built, what we added, how it works, results (baseline vs council), where it fails, next steps, sources</li>
+      <li>The line "This project is a prototype and is not financial advice."</li>
+      <li>Credits for every dataset, library, Alpaca, Claude Opus 5.5 (report writing) and Claude Code (coding assistant)</li>
+      <li>A 2-minute video: problem (15s), live demo with a decline-and-retry (60s), results vs baselines (30s), one limitation (15s)</li>
+    </ul>
+  </section>
+
+  <footer>
+    <span>Market Council · build plan summary from PLAN.md, 15 Nov 2026</span>
+    <span>This project is a prototype and is not financial advice.</span>
+  </footer>
+</div>

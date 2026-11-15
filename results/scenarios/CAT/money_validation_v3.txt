@@ -1,0 +1,6 @@
+validation: 198 decisions 2016-01-04 to 2019-12-02 | council strategy (tuned on validation): theta 0.0, risk budget K inf
+                        purchases  invested  total_profit  profit_per_100  lost_over_50  worst_loss  gapped_stops  S500_becomes  worst_drop
+Always buy                  198.0   99000.0       2193.49            2.22          15.0      123.13           0.0       1241.12       -0.23
+Random, same buy rate       198.0   99000.0       2193.49            2.22          15.0      123.13           0.0       1241.12       -0.23
+Always buy + stop-loss      198.0   99000.0       2129.86            2.15           3.0       75.91           3.0        963.11       -0.39
+Council                     198.0   99000.0       2232.38            2.25           0.0       48.99           6.0       1124.16       -0.30

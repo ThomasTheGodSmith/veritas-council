@@ -1,0 +1,12 @@
+{
+  "agent": "devils_advocate",
+  "EXAMPLE_ONLY": true,
+  "probability_up": 0.45,
+  "horizon_days": 20,
+  "expected_return_pct": -0.5,
+  "recommended_action": "wait",
+  "user_idea_verdict": "challenges",
+  "key_numbers": {},
+  "top_reasons": [],
+  "track_record": {}
+}

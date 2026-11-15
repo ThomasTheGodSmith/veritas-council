@@ -1,0 +1,12 @@
+{
+  "agent": "dow_breadth",
+  "EXAMPLE_ONLY": true,
+  "probability_up": 0.44,
+  "horizon_days": 20,
+  "expected_return_pct": -0.6,
+  "recommended_action": "avoid",
+  "user_idea_verdict": "challenges",
+  "key_numbers": {},
+  "top_reasons": [],
+  "track_record": {}
+}

@@ -1,0 +1,12 @@
+{
+  "agent": "momentum",
+  "EXAMPLE_ONLY": true,
+  "probability_up": 0.58,
+  "horizon_days": 20,
+  "expected_return_pct": 0.8,
+  "recommended_action": "buy",
+  "user_idea_verdict": "supports",
+  "key_numbers": {},
+  "top_reasons": [],
+  "track_record": {}
+}

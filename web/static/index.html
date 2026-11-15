@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Market Council</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=Instrument+Serif&display=swap">
+<link rel="stylesheet" href="/static/app.css">
+</head>
+<body>
+<header class="bar">
+  <div class="bar-inner">
+    <a class="mark" href="#ask" aria-label="Market Council home">
+      <svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="14.5"/><path d="M9 21V11l7 7 7-7v10"/></svg>
+      <span>Market Council</span>
+    </a>
+    <nav class="views" aria-label="Views">
+      <a href="#ask" data-view="ask">Ask the council</a>
+      <a href="#results" data-view="results">Results</a>
+      <a href="#portfolio" data-view="portfolio">Portfolio</a>
+      <a href="#method" data-view="method">How it works</a>
+    </nav>
+    <label class="picker">
+      <span>Council</span>
+      <select id="program" aria-label="Choose which trained council to use"></select>
+    </label>
+  </div>
+  <p class="disclaimer" id="disclaimer">This project is a prototype and is not financial advice.</p>
+</header>
+
+<main>
+  <!-- ================================================================ ask -->
+  <section class="view" id="view-ask" data-view="ask">
+    <form class="plan" id="plan" autocomplete="off">
+      <h1>Your plan</h1>
+      <p class="hint" id="council-note">Choose a council above, then tell it what you want to do.</p>
+
+      <label class="field">
+        <span>What to buy</span>
+        <select id="ticker"></select>
+      </label>
+      <div class="pair">
+        <label class="field">
+          <span>Amount (S$)</span>
+          <input id="amount" type="number" min="10" step="1" value="500" required>
+        </label>
+        <label class="field">
+          <span>Most I'll lose (S$)</span>
+          <input id="max_loss" type="number" min="1" step="1" value="50" required>
+        </label>
+      </div>
+      <label class="field">
+        <span>Hold for (trading days)</span>
+        <input id="horizon" type="number" min="20" step="1" value="20" required>
+      </label>
+      <label class="field">
+        <span>Sectors to avoid <em>optional, e.g. banks, oil</em></span>
+        <input id="avoid" type="text" placeholder="None">
+      </label>
+      <fieldset class="field idea">
+        <legend>Your own idea</legend>
+        <div class="toggle" role="radiogroup">
+          <label><input type="radio" name="dir" value="up" checked><span>I think it will rise</span></label>
+          <label><input type="radio" name="dir" value="down"><span>I think it will fall</span></label>
+        </div>
+      </fieldset>
+      <button class="primary" id="ask" type="submit">Ask the council</button>
+      <p class="hint small">Takes 10–30 seconds. Uses data up to the latest close. Paper money only.</p>
+    </form>
+
+    <div class="outcome" id="outcome" aria-live="polite">
+      <div class="empty" id="empty">
+        <h2>The council hasn't met yet</h2>
+        <p>Eleven trained analysts will each give their view on your plan. A Judge then decides how much,
+          if anything, to buy, with a stop-loss that keeps you inside your loss limit.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================================================================ results -->
+  <section class="view" id="view-results" data-view="results" hidden>
+    <div class="results-head">
+      <h1 id="results-title">Results</h1>
+      <p class="lede">Test years 2020–2026, which no model ever saw. S$500 budget, S$50 maximum loss, a decision every
+        5 trading days. Each figure is the average over 20 fair decision calendars, with the range from worst to best.</p>
+    </div>
+    <div id="results-body"></div>
+    <h2 class="sub">Every council we trained</h2>
+    <div class="table-wrap"><table class="data" id="all-results"></table></div>
+    <p class="hint small">Full write-up of training and results: RESULTS.md in the project folder.</p>
+  </section>
+
+  <!-- ================================================================ portfolio -->
+  <section class="view" id="view-portfolio" data-view="portfolio" hidden>
+    <h1>Paper portfolio</h1>
+    <p class="lede">Orders placed with Approve &amp; invest. Paper money only: nothing here is real.</p>
+    <h2 class="sub">Positions</h2>
+    <div class="table-wrap"><table class="data" id="positions"></table></div>
+    <h2 class="sub">Orders</h2>
+    <div class="table-wrap"><table class="data" id="orders"></table></div>
+    <h2 class="sub">Scheduled steps</h2>
+    <div class="table-wrap"><table class="data" id="pending"></table></div>
+  </section>
+
+  <!-- ================================================================ method -->
+  <section class="view prose" id="view-method" data-view="method" hidden>
+    <h1>How it works</h1>
+    <p class="lede">Market Council helps a first-time investor stress-test a planned purchase before risking money.</p>
+    <h2>Who it's for</h2>
+    <p>A teenager with a few hundred dollars who wants to buy the Dow, or one company, and has set a limit on how much
+      they're willing to lose.</p>
+    <h2>What happens when you ask</h2>
+    <ol>
+      <li>Eleven analysts, each a different kind of model we trained from scratch, predict what happens next: trend
+        models, a gradient-boosted forecaster, a GARCH risk model, a text model of world news, a small transformer that
+        writes possible futures, a CNN that reads the chart, a market-mood model and more.</li>
+      <li>They debate. Where two disagree, the council checks who was right when they disagreed like this before. A
+        Devil's Advocate estimates how often the majority is wrong in situations like today's.</li>
+      <li>Your rules are checked in code: budget, maximum loss, holding period and sectors to avoid. Nothing can
+        overrule a failed rule.</li>
+      <li>The Judge decides how much to buy and where to put the stop-loss. The stop sits a little inside your limit,
+        leaving room for a bad overnight jump in that stock.</li>
+      <li>You approve or decline. Approving places a paper order. Declining with a reason sends your plan back to the
+        council.</li>
+    </ol>
+    <h2>How we kept it honest</h2>
+    <ul>
+      <li>Models learned only from 1992–2019. The years 2020–2026 were kept in a separate folder the training code
+        can't open, and automated tests check this.</li>
+      <li>Every setting was chosen on training years only, using robust rules that resist getting lucky.</li>
+      <li>We compare against simple strategies and report where the council loses, including on profit.</li>
+    </ul>
+    <h2>What we found</h2>
+    <p>None of the models predicted direction better than "markets usually rise". Judging risk is what worked: across
+      13 separately trained councils, ours kept investors inside their loss limit more reliably than buying or a plain
+      stop-loss, at the cost of some profit in a rising market.</p>
+  </section>
+</main>
+
+<template id="tpl-loading">
+  <div class="deliberating">
+    <h2>The council is deliberating</h2>
+    <ol class="seats"></ol>
+    <p class="hint">Reading the latest prices, asking each analyst, checking your rules.</p>
+  </div>
+</template>
+
+<script src="/static/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,53 @@
+# Datasets used (PLAN.md §0b). Raw files live in data/raw/ (gitignored) and are rebuilt by the
+# scripts in scripts/. See data/README.md for coverage, gaps and caveats.
+# Each dataset needs a loader in council/loaders/ that maps it to the standard format.
+
+split:
+  # ONE cutoff for every dataset, set by the Dow index's years (council/splits.py).
+  # Training code only ever reads data/splits/train/, which has no test years in it.
+  start_date: 1992-01-01     # everything is trimmed to start here, so all datasets share one split
+  test_fraction: 0.2         # newest 20% of the years (rounded up) = test, rest = training
+  validation_fraction: 0.15  # newest ~15% of the TRAINING years = validation slice
+  embargo_trading_days: 20   # labels look 20 days ahead, so drop 20 days before the validation start
+
+datasets:
+  dow_index_prices:
+    source: Yahoo Finance ^DJI via yfinance        # scripts/fetch_prices.py
+    path: data/raw/prices/^DJI.csv
+    range: [1992-01-02, 2026-11-13]
+  tradable_dow_fund:
+    source: Yahoo Finance DIA via yfinance
+    path: data/raw/prices/DIA.csv
+    range: [1998-01-20, 2026-11-13]
+  member_prices:
+    source: Yahoo Finance via yfinance, one file per ticker (Close is split-adjusted only)
+    path: data/raw/prices/{ticker}.csv
+    range: [1990-01-02, 2026-11-13]
+    missing: [WBA, FL]       # delisted; HWM (old Alcoa) only from 2016-11. See data/README.md
+  dow_membership:
+    source: Wikipedia "Historical components of the DJIA", hand-mapped to tickers
+    path: data/raw/membership/dow_membership.csv   # scripts/build_membership.py
+    range: [1991-05-06, today]
+  stock_splits:
+    source: Yahoo Finance Ticker.history(actions=True)
+    path: data/raw/splits.csv
+  market_news:
+    - source: Kaggle "Daily News for Stock Market Prediction" (top 25 r/worldnews per day)
+      path: data/raw/news/stocknews/Combined_News_DJIA.csv
+      range: [2008-08-08, 2016-07-01]
+    - source: Arctic Shift Reddit archive, rebuilt the same way (top 25 r/worldnews by score)
+      path: data/raw/news/reddit_days/{date}.json  # scripts/sync_news.py (backfill still running)
+      range: [2021-04-22, 2026-11-13]               # filling backwards towards 2016-07
+  company_news:
+    source: Kaggle "Massive Stock News Analysis DB for NLP Backtests" (ticker-tagged headlines)
+    path: [data/raw/news/company/raw_analyst_ratings.csv, data/raw/news/company/raw_partner_headlines.csv]
+    range: [2009-02-14, 2020-06-11]   # ends before the council test window
+  macro:
+    source: FRED public CSV endpoint            # scripts/fetch_macro.py
+    path: data/raw/macro/{series}.csv
+    series: [DFF, DGS10, DGS2, T10Y2Y, T10Y3M, VIXCLS, DCOILWTICO, DTWEXBGS, CPIAUCSL, UNRATE]
+    release_lag: {CPIAUCSL: 46 days, UNRATE: 38 days}   # shift to release date before use
+  cross_asset:
+    source: Yahoo Finance via yfinance
+    path: data/raw/prices/{ticker}.csv
+    tickers: ["^VIX", "^TNX", "DX-Y.NYB", "CL=F"]

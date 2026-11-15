@@ -1,0 +1,33 @@
+# Analysts and settings (PLAN.md §1 and §1b). All prediction models are trained from scratch.
+# stage: 1 (default) trains first; 2 gets stage-1 analysts in ctx.extra["analysts"]; 3 also gets validation predictions.
+horizon_days: 20
+
+analysts:
+  - {id: 1,  name: momentum,          file: council/analysts/momentum.py,          votes: true}
+  - {id: 2,  name: mean_reversion,    file: council/analysts/mean_reversion.py,    votes: true}
+  - {id: 3,  name: ml_forecaster,     file: council/analysts/ml_forecaster.py,     votes: true}
+  - {id: 4,  name: risk_officer,      file: council/analysts/risk_officer.py,      votes: true}
+  - {id: 5,  name: news_reaction,     file: council/analysts/news_reaction.py,     votes: true}
+  - {id: 6,  name: pattern_oracle,    file: council/analysts/pattern_oracle.py,    votes: true}
+  - {id: 7,  name: raw_reader,        file: council/analysts/raw_reader.py,        votes: true}
+  - {id: 8,  name: market_regime,     file: council/analysts/market_regime.py,     votes: true}
+  - {id: 9,  name: macro,             file: council/analysts/macro.py,             votes: true}
+  - {id: 10, name: dow_breadth,       file: council/analysts/dow_breadth.py,       votes: true, stage: 2}
+  - {id: 11, name: devils_advocate,   file: council/devils_advocate.py,            votes: true, stage: 3}
+  - {id: 0,  name: fundamentals_card, file: council/analysts/fundamentals_card.py, votes: false}
+  - {id: 12, name: drawdown_risk,     file: council/analysts/drawdown_risk.py,     votes: false}   # risk model for the max-loss rule
+
+pattern_oracle:
+  token_bins: 64
+  context_tokens: 120
+  layers: 4
+  heads: 4
+  embed_dim: 64              # shrunk from 128 on 15 Nov: ~240k training tokens, and sampling was 2x slower
+  sampled_futures: 200
+
+raw_reader:
+  window_days: 120
+
+narrator:
+  model: claude-opus-5-5     # writes the readable report only; never predicts or decides
+  enabled: true              # falls back to templates without an API key

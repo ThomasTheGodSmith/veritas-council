@@ -1,0 +1,367 @@
+
+===== split: python -m council.splits
+prices        train    52,765 rows to 2019-12-31   test    13,822 rows from 2020-01-02
+macro         train    55,842 rows to 2019-12-31   test    14,731 rows from 2020-01-01
+market_news   train    49,718 rows to 2016-07-01   test    34,975 rows from 2021-04-22
+company_news  train     2,689 rows to 2019-12-26   test       231 rows from 2020-01-02
+{
+  "first_year": 1992,
+  "last_year": 2026,
+  "n_years": 35,
+  "n_test_years": 7,
+  "n_val_years": 4,
+  "train_start": "1992-01-01",
+  "val_start": "2016-01-01",
+  "test_start": "2020-01-01",
+  "last_date": "2026-11-13",
+  "embargo_trading_days": 20
+}
+
+===== panel: python -c from council.data import train_panel; p = train_panel(rebuild=True); print(p.shape)
+(7053, 41)
+
+===== train: python train.py
+D:\code\veritas_council\council\analysts\market_regime.py:72: RuntimeWarning: divide by zero encountered in log
+  log_alpha = np.log(self.hmm.startprob_) + log_b[0]
+D:\code\veritas_council\council\analysts\market_regime.py:61: RuntimeWarning: invalid value encountered in divide
+  self.p_up[group] = (w * y[:, None]).sum(0) / w.sum(0)  # weighted share that went up
+D:\code\veritas_council\council\analysts\market_regime.py:72: RuntimeWarning: divide by zero encountered in log
+  log_alpha = np.log(self.hmm.startprob_) + log_b[0]
+D:\code\veritas_council\council\analysts\market_regime.py:72: RuntimeWarning: divide by zero encountered in log
+  log_alpha = np.log(self.hmm.startprob_) + log_b[0]
+D:\code\veritas_council\council\analysts\market_regime.py:61: RuntimeWarning: invalid value encountered in divide
+  self.p_up[group] = (w * y[:, None]).sum(0) / w.sum(0)  # weighted share that went up
+D:\code\veritas_council\council\analysts\market_regime.py:72: RuntimeWarning: divide by zero encountered in log
+  log_alpha = np.log(self.hmm.startprob_) + log_b[0]
+fit rows 6,027 (1992-01-02 to 2015-12-02), validation rows 986 (2016-01-04 to 2019-12-02)
+[momentum] fitting on fit years ...
+[momentum] validation accuracy 0.620 (n=986); refitting on all training years ...
+[momentum] saved (0s)
+[mean_reversion] fitting on fit years ...
+[mean_reversion] validation accuracy 0.620 (n=986); refitting on all training years ...
+[mean_reversion] saved (0s)
+[ml_forecaster] fitting on fit years ...
+[ml_forecaster] validation accuracy 0.551 (n=986); refitting on all training years ...
+[ml_forecaster] saved (0s)
+[risk_officer] fitting on fit years ...
+[risk_officer] validation accuracy 0.620 (n=986); refitting on all training years ...
+[risk_officer] saved (0s)
+[news_reaction] fitting on fit years ...
+  news_reaction: 1,802 of 6,027 fit rows have news (2008-08-11 to 2015-12-02), vocabulary 16,598
+  news_reaction: fold-3 log loss by C {0.001: 0.686, 0.003: 0.6808, 0.01: 0.6779, 0.03: 0.6783, 0.1: 0.6811, 0.3: 0.6861}, base rate alone 0.6766
+  news_reaction: C=0.01, out-of-fold text accuracy 0.642, combiner weights (logit p_text, retrieved, volume) = [-0.233, 0.006, -0.041]
+[news_reaction] validation accuracy 0.620 (n=986); refitting on all training years ...
+  news_reaction: 2,614 of 7,033 fit rows have news (2008-08-11 to 2019-12-02), vocabulary 18,220
+  news_reaction: fold-3 log loss by C {0.001: 0.678, 0.003: 0.6676, 0.01: 0.66, 0.03: 0.6577, 0.1: 0.6585, 0.3: 0.6628}, base rate alone 0.6552
+  news_reaction: C=0.03, out-of-fold text accuracy 0.638, combiner weights (logit p_text, retrieved, volume) = [0.088, -0.052, -0.063]
+[news_reaction] saved (5s)
+[pattern_oracle] fitting on fit years ...
+  pattern_oracle: 1 tickers, 6,026 tokens, 197 windows, 217,280 parameters
+  pattern_oracle epoch 1/6: loss 4.3317 (uniform guess = 4.1589), 1s
+  pattern_oracle epoch 2/6: loss 4.3187 (uniform guess = 4.1589), 2s
+  pattern_oracle epoch 3/6: loss 4.2816 (uniform guess = 4.1589), 3s
+  pattern_oracle epoch 4/6: loss 4.2474 (uniform guess = 4.1589), 5s
+  pattern_oracle epoch 5/6: loss 4.2281 (uniform guess = 4.1589), 6s
+  pattern_oracle epoch 6/6: loss 4.2191 (uniform guess = 4.1589), 7s
+[pattern_oracle] validation accuracy 0.612 (n=986); refitting on all training years ...
+  pattern_oracle: 1 tickers, 7,032 tokens, 230 windows, 217,280 parameters
+  pattern_oracle epoch 1/6: loss 4.3291 (uniform guess = 4.1589), 1s
+  pattern_oracle epoch 2/6: loss 4.3143 (uniform guess = 4.1589), 2s
+  pattern_oracle epoch 3/6: loss 4.2806 (uniform guess = 4.1589), 3s
+  pattern_oracle epoch 4/6: loss 4.2503 (uniform guess = 4.1589), 5s
+  pattern_oracle epoch 5/6: loss 4.2310 (uniform guess = 4.1589), 6s
+  pattern_oracle epoch 6/6: loss 4.2238 (uniform guess = 4.1589), 7s
+[pattern_oracle] saved (58s)
+[raw_reader] fitting on fit years ...
+  raw_reader: 5,908 windows, 8,465 parameters
+  raw_reader epoch 1/3: loss 0.6908 (base-rate guess = 0.6808), 0s
+  raw_reader epoch 2/3: loss 0.6826 (base-rate guess = 0.6808), 0s
+  raw_reader epoch 3/3: loss 0.6806 (base-rate guess = 0.6808), 0s
+[raw_reader] validation accuracy 0.620 (n=986); refitting on all training years ...
+  raw_reader: 6,914 windows, 8,465 parameters
+  raw_reader epoch 1/3: loss 0.6884 (base-rate guess = 0.6794), 0s
+  raw_reader epoch 2/3: loss 0.6799 (base-rate guess = 0.6794), 0s
+  raw_reader epoch 3/3: loss 0.6806 (base-rate guess = 0.6794), 1s
+[raw_reader] saved (1s)
+[market_regime] fitting on fit years ...
+[market_regime] validation accuracy 0.620 (n=986); refitting on all training years ...
+[market_regime] saved (3s)
+[macro] fitting on fit years ...
+[macro] validation accuracy 0.620 (n=986); refitting on all training years ...
+[macro] saved (0s)
+  skip fundamentals_card: not written yet
+[drawdown_risk] fitting on fit years ...
+[drawdown_risk] validation: actual loss beat the predicted 1-in-20 loss on 8.6% of rows (target 5%); refitting on all training years ...
+[drawdown_risk] saved (0s)
+[dow_breadth] fitting on fit years ...
+[dow_breadth] SKIPPED: ValueError: Found array with 0 sample(s) (shape=(0, 3)) while a minimum of 1 is required by SimpleImputer.
+[devils_advocate] fitting on fit years ...
+[devils_advocate] validation accuracy 0.380 (n=986); refitting on all training years ...
+[devils_advocate] saved (48s)
+{
+  "devils_advocate": {
+    "validation_accuracy": 0.3803,
+    "brier": 0.3061,
+    "n": 986,
+    "index_accuracy": 0.3803
+  },
+  "macro": {
+    "validation_accuracy": 0.6197,
+    "brier": 0.2359,
+    "n": 986,
+    "index_accuracy": 0.6197
+  },
+  "market_regime": {
+    "validation_accuracy": 0.6197,
+    "brier": 0.2379,
+    "n": 986,
+    "index_accuracy": 0.6197
+  },
+  "mean_reversion": {
+    "validation_accuracy": 0.6197,
+    "brier": 0.237,
+    "n": 986,
+    "index_accuracy": 0.6197
+  },
+  "ml_forecaster": {
+    "validation_accuracy": 0.5507,
+    "brier": 0.2576,
+    "n": 986,
+    "index_accuracy": 0.5507
+  },
+  "momentum": {
+    "validation_accuracy": 0.6197,
+    "brier": 0.2371,
+    "n": 986,
+    "index_accuracy": 0.6197
+  },
+  "news_reaction": {
+    "validation_accuracy": 0.6197,
+    "brier": 0.2382,
+    "n": 986,
+    "index_accuracy": 0.6197
+  },
+  "pattern_oracle": {
+    "validation_accuracy": 0.6116,
+    "brier": 0.2384,
+    "n": 986,
+    "index_accuracy": 0.6116
+  },
+  "raw_reader": {
+    "validation_accuracy": 0.6197,
+    "brier": 0.2383,
+    "n": 986,
+    "index_accuracy": 0.6197
+  },
+  "risk_officer": {
+    "validation_accuracy": 0.6197,
+    "brier": 0.2369,
+    "n": 986,
+    "index_accuracy": 0.6197
+  }
+}
+
+===== mediator: python -m council.mediator
+{
+  "note": "Out-of-fold (leave-one-year-out) on the validation slice; the test years are untouched.",
+  "rows": 986,
+  "dates": [
+    "2016-01-04",
+    "2019-12-02"
+  ],
+  "agents": [
+    "macro",
+    "market_regime",
+    "mean_reversion",
+    "ml_forecaster",
+    "momentum",
+    "news_reaction",
+    "pattern_oracle",
+    "raw_reader",
+    "risk_officer"
+  ],
+  "trust": {
+    "macro": 0.0555,
+    "market_regime": 0.0,
+    "mean_reversion": 0.0801,
+    "ml_forecaster": 0.0592,
+    "momentum": 0.0619,
+    "news_reaction": 0.0,
+    "pattern_oracle": 0.1373,
+    "raw_reader": 0.0,
+    "risk_officer": 0.0536
+  },
+  "coefficients": {
+    "intercept": 0.0698,
+    "regime": 0.1719,
+    "vol": 0.2198,
+    "p_wrong": 0.592
+  },
+  "theta": 0.5,
+  "lambda": 0.1,
+  "risk_rule": "drawdown_risk model",
+  "avg_win": 0.0356,
+  "avg_loss": 0.031,
+  "base_rate_up": 0.6197,
+  "stacking": {
+    "accuracy": 0.5963,
+    "brier": 0.2463
+  },
+  "simple_average": {
+    "accuracy": 0.6197,
+    "brier": 0.237
+  },
+  "judge_at_theta": {
+    "theta": 0.5,
+    "avg_return": 0.006270142612266916,
+    "breach_share": 0.032454361054766734,
+    "buy_rate": 0.8813387423935092,
+    "score": 0.003024706506790243
+  },
+  "judge_index_only": {
+    "avg_return": 0.006270142612266916,
+    "breach_share": 0.032454361054766734,
+    "buy_rate": 0.8813387423935092,
+    "score": 0.003024706506790243
+  },
+  "simple_average_judge": {
+    "theta": 0.52,
+    "avg_return": 0.008350641730440984,
+    "breach_share": 0.032454361054766734,
+    "buy_rate": 0.9137931034482759,
+    "score": 0.005105205624964311
+  },
+  "always_buy": {
+    "avg_return": 0.010285812465103787,
+    "breach_share": 0.034482758620689655,
+    "buy_rate": 1.0,
+    "score": 0.006837536603034822
+  },
+  "never_buy": {
+    "avg_return": 0.0,
+    "breach_share": 0.0,
+    "buy_rate": 0.0,
+    "score": 0.0
+  }
+}
+saved models\scenarios\JNJ\mediator.pkl and models\scenarios\JNJ\council_validation.json
+
+===== strategy: python -m council.strategy
+{
+  "validation_rows": 198,
+  "theta": 0.0,
+  "k": 2.0,
+  "best": {
+    "theta": 0.0,
+    "k": 2.0,
+    "score": 5.326035346428025,
+    "avg_profit": 5.326035346428025,
+    "buy_rate": 1.0,
+    "avg_amount": 500.0,
+    "lost_over_limit": 0.0,
+    "gapped_stops": 0.0
+  }
+}
+
+===== backtest: python -m eval.backtest
+D:\code\veritas_council\council\analysts\market_regime.py:72: RuntimeWarning: divide by zero encountered in log
+  log_alpha = np.log(self.hmm.startprob_) + log_b[0]
+D:\code\veritas_council\eval\backtest.py:95: RuntimeWarning: Mean of empty slice
+  rate = np.where(group, buys["council"][group].mean(), buys["council"][~group].mean())
+D:\code\veritas_council\.venv\Lib\site-packages\numpy\_core\_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+D:\code\veritas_council\eval\backtest.py:142: RuntimeWarning: Mean of empty slice
+  "accuracy": float((buy == up).mean()),
+D:\code\veritas_council\.venv\Lib\site-packages\numpy\_core\_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+D:\code\veritas_council\eval\backtest.py:144: RuntimeWarning: Mean of empty slice
+  "buy_rate": float(buy.mean()),
+D:\code\veritas_council\eval\backtest.py:146: RuntimeWarning: Mean of empty slice
+  "avg_return": float(r.mean()),
+D:\code\veritas_council\.venv\Lib\site-packages\numpy\_core\_methods.py:219: RuntimeWarning: Degrees of freedom <= 0 for slice
+  ret = _var(a, axis=axis, dtype=dtype, out=out, ddof=ddof,
+D:\code\veritas_council\.venv\Lib\site-packages\numpy\_core\_methods.py:178: RuntimeWarning: invalid value encountered in divide
+  arrmean = um.true_divide(arrmean, div, out=arrmean,
+D:\code\veritas_council\.venv\Lib\site-packages\numpy\_core\_methods.py:211: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+D:\code\veritas_council\eval\backtest.py:143: RuntimeWarning: Mean of empty slice
+  "brier": float(((p - up) ** 2).mean()) if p is not None else math.nan,
+  predicting momentum ...
+  predicting mean_reversion ...
+  predicting ml_forecaster ...
+  predicting risk_officer ...
+  predicting news_reaction ...
+  predicting pattern_oracle ...
+  predicting raw_reader ...
+  predicting market_regime ...
+  predicting macro ...
+  test calibration: real loss beat the 1-in-20 estimate on 12.6% of rows (risk model) vs 8.8% (vol formula)
+{'test_window': ['2020-01-01', '2026-10-15'], 'decision_every_trading_days': 5, 'index_decisions': 342, 'member_decisions': 0}
+
+Dow index (DIA):
+                                    n  accuracy  brier  buy_rate  avg_buy_return  avg_return  sharpe  loss_breaches  breaches_per_buy  max_drawdown  total_return
+always_buy                     342.0     0.553    NaN     1.000           0.010       0.010   0.715          0.018             0.018        -0.176         1.156
+previous_direction             342.0     0.512    NaN     0.567           0.011       0.006   0.607          0.006             0.010        -0.138         0.756
+sma50_rule                     342.0     0.491    NaN     0.599           0.008       0.005   0.431          0.006             0.010        -0.236         0.452
+momentum                       342.0     0.553  0.249     1.000           0.010       0.010   0.715          0.018             0.018        -0.176         1.156
+mean_reversion                 342.0     0.553  0.249     1.000           0.010       0.010   0.715          0.018             0.018        -0.176         1.156
+ml_forecaster                  342.0     0.518  0.272     0.778           0.010       0.008   0.588          0.015             0.019        -0.151         0.763
+risk_officer                   342.0     0.556  0.248     0.997           0.011       0.010   0.721          0.018             0.018        -0.176         1.156
+news_reaction                  342.0     0.553  0.270     1.000           0.010       0.010   0.715          0.018             0.018        -0.176         1.156
+pattern_oracle                 342.0     0.547  0.250     0.965           0.011       0.010   0.709          0.018             0.018        -0.176         1.156
+raw_reader                     342.0     0.553  0.247     1.000           0.010       0.010   0.715          0.018             0.018        -0.176         1.156
+market_regime                  342.0     0.553  0.251     1.000           0.010       0.010   0.715          0.018             0.018        -0.176         1.156
+macro                          342.0     0.544  0.261     0.962           0.010       0.010   0.700          0.018             0.018        -0.176         1.103
+majority_vote                  342.0     0.553    NaN     1.000           0.010       0.010   0.715          0.018             0.018        -0.176         1.156
+simple_average                 342.0     0.553  0.250     1.000           0.010       0.010   0.715          0.018             0.018        -0.176         1.156
+devils_advocate                342.0     0.447  0.291     0.000             NaN       0.000     NaN          0.000               NaN         0.000         0.000
+council                        342.0     0.538  0.256     0.863           0.009       0.008   0.608          0.009             0.010        -0.155         0.914
+ablation_risk_model_only       342.0     0.535    NaN     0.865           0.009       0.008   0.600          0.009             0.010        -0.155         0.914
+ablation_vol_formula_only      342.0     0.529    NaN     0.842           0.007       0.006   0.485          0.009             0.010        -0.185         0.693
+ablation_council_vol_formula   342.0     0.532    NaN     0.839           0.008       0.006   0.492          0.009             0.010        -0.185         0.693
+ablation_council_no_rules      342.0     0.556    NaN     0.997           0.011       0.010   0.722          0.018             0.018        -0.176         1.156
+ablation_no_devils_advocate    342.0     0.535  0.259     0.865           0.009       0.008   0.600          0.009             0.010        -0.155         0.914
+ablation_simple_average_judge  342.0     0.535    NaN     0.865           0.009       0.008   0.600          0.009             0.010        -0.155         0.914
+random_at_council_rate         342.0     0.520    NaN     0.816           0.010       0.008   0.590          0.012             0.014        -0.204         0.980
+
+Dow members:
+                                  n  accuracy  brier  buy_rate  avg_buy_return  avg_return  sharpe  loss_breaches  breaches_per_buy
+always_buy                     0.0       NaN    NaN       NaN             NaN         NaN     NaN            NaN               NaN
+previous_direction             0.0       NaN    NaN       NaN             NaN         NaN     NaN            NaN               NaN
+sma50_rule                     0.0       NaN    NaN       NaN             NaN         NaN     NaN            NaN               NaN
+momentum                       0.0       NaN    NaN       NaN             NaN         NaN     NaN            NaN               NaN
+mean_reversion                 0.0       NaN    NaN       NaN             NaN         NaN     NaN            NaN               NaN
+ml_forecaster                  0.0       NaN    NaN       NaN             NaN         NaN     NaN            NaN               NaN
+risk_officer                   0.0       NaN    NaN       NaN             NaN         NaN     NaN            NaN               NaN
+news_reaction                  0.0       NaN    NaN       NaN             NaN         NaN     NaN            NaN               NaN
+pattern_oracle                 0.0       NaN    NaN       NaN             NaN         NaN     NaN            NaN               NaN
+raw_reader                     0.0       NaN    NaN       NaN             NaN         NaN     NaN            NaN               NaN
+market_regime                  0.0       NaN    NaN       NaN             NaN         NaN     NaN            NaN               NaN
+macro                          0.0       NaN    NaN       NaN             NaN         NaN     NaN            NaN               NaN
+majority_vote                  0.0       NaN    NaN       NaN             NaN         NaN     NaN            NaN               NaN
+simple_average                 0.0       NaN    NaN       NaN             NaN         NaN     NaN            NaN               NaN
+devils_advocate                0.0       NaN    NaN       NaN             NaN         NaN     NaN            NaN               NaN
+council                        0.0       NaN    NaN       NaN             NaN         NaN     NaN            NaN               NaN
+ablation_risk_model_only       0.0       NaN    NaN       NaN             NaN         NaN     NaN            NaN               NaN
+ablation_vol_formula_only      0.0       NaN    NaN       NaN             NaN         NaN     NaN            NaN               NaN
+ablation_council_vol_formula   0.0       NaN    NaN       NaN             NaN         NaN     NaN            NaN               NaN
+ablation_council_no_rules      0.0       NaN    NaN       NaN             NaN         NaN     NaN            NaN               NaN
+ablation_no_devils_advocate    0.0       NaN    NaN       NaN             NaN         NaN     NaN            NaN               NaN
+ablation_simple_average_judge  0.0       NaN    NaN       NaN             NaN         NaN     NaN            NaN               NaN
+random_at_council_rate         0.0       NaN    NaN       NaN             NaN         NaN     NaN            NaN               NaN
+
+===== money validation: python -m eval.money validation
+validation: 198 decisions 2016-01-04 to 2019-12-02 | council strategy (tuned on validation): theta 0.0, risk budget K 2.0
+                        purchases  invested  total_profit  profit_per_100  lost_over_50  worst_loss  gapped_stops  S500_becomes  worst_drop
+Always buy                  198.0   99000.0       1033.56            1.04           4.0       70.39           0.0        820.45       -0.14
+Random, same buy rate       198.0   99000.0       1033.56            1.04           4.0       70.39           0.0        820.45       -0.14
+Always buy + stop-loss      198.0   99000.0       1016.41            1.03           0.0       50.00           0.0        820.77       -0.16
+Council                     198.0   99000.0       1054.55            1.07           0.0       45.23           0.0        829.46       -0.15
+
+===== money test: python -m eval.money test
+test: 342 decisions 2020-01-02 to 2026-10-15 | council strategy (tuned on validation): theta 0.0, risk budget K 2.0
+                        purchases  invested  total_profit  profit_per_100  lost_over_50  worst_loss  gapped_stops  S500_becomes  worst_drop
+Always buy                  342.0  171000.0       1779.21            1.04           2.0      119.36           0.0       1078.13       -0.18
+Random, same buy rate       342.0  171000.0       1779.21            1.04           2.0      119.36           0.0       1078.13       -0.18
+Always buy + stop-loss      342.0  171000.0       1433.84            0.84           5.0       65.38           5.0        791.69       -0.20
+Council                     342.0  171000.0       1466.23            0.86           2.0       53.28           4.0        816.98       -0.18

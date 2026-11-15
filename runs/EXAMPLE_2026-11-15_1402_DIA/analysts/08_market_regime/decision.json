@@ -1,0 +1,12 @@
+{
+  "agent": "market_regime",
+  "EXAMPLE_ONLY": true,
+  "probability_up": 0.57,
+  "horizon_days": 20,
+  "expected_return_pct": 0.7,
+  "recommended_action": "buy",
+  "user_idea_verdict": "supports",
+  "key_numbers": {},
+  "top_reasons": [],
+  "track_record": {}
+}

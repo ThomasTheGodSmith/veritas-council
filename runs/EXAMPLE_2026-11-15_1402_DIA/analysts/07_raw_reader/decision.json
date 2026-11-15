@@ -1,0 +1,12 @@
+{
+  "agent": "raw_reader",
+  "EXAMPLE_ONLY": true,
+  "probability_up": 0.51,
+  "horizon_days": 20,
+  "expected_return_pct": 0.1,
+  "recommended_action": "wait",
+  "user_idea_verdict": "supports",
+  "key_numbers": {},
+  "top_reasons": [],
+  "track_record": {}
+}

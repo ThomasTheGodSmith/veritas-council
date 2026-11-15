@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Market Council report</title>
+<style>
+  .mc { font-family: system-ui, -apple-system, "Segoe UI", sans-serif; color: #1d1d1f; background: #fff;
+        max-width: 960px; margin: 0 auto; padding: 16px; line-height: 1.45; }
+  .mc h2 { font-size: 1.15rem; margin: 1.4rem 0 .5rem; border-bottom: 1px solid #e3e3e3; padding-bottom: 4px; }
+  .mc .disclaimer { background: #fff4d6; border: 1px solid #e8c766; padding: 8px 12px; border-radius: 6px; font-weight: 600; }
+  .mc .verdict { border: 2px solid #888; border-radius: 10px; padding: 14px 18px; margin: 14px 0; }
+  .mc .verdict.buy { border-color: #2e8b57; background: #eef8f1; }
+  .mc .verdict.wait { border-color: #c9a227; background: #fdf8e8; }
+  .mc .verdict.avoid { border-color: #c0392b; background: #fbeeee; }
+  .mc .big { font-size: 2rem; font-weight: 800; letter-spacing: .02em; }
+  .mc .stats span { display: inline-block; margin-right: 18px; color: #444; }
+  .mc .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
+  .mc .card { border: 1px solid #ddd; border-radius: 8px; padding: 10px 12px; }
+  .mc .card img, .mc details img { max-width: 100%; height: auto; }
+  .mc .tag { font-size: .8rem; padding: 1px 8px; border-radius: 10px; font-weight: 600; }
+  .mc .supports { background: #e3f4e8; color: #1e6b3d; }
+  .mc .challenges { background: #fde9dc; color: #9a4a12; }
+  .mc table { border-collapse: collapse; width: 100%; font-size: .9rem; }
+  .mc th, .mc td { border: 1px solid #ddd; padding: 6px 8px; text-align: left; vertical-align: top; }
+  .mc th { background: #f4f4f6; }
+  .mc .plans { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
+  .mc .plan { border: 1px solid #ccc; border-radius: 8px; padding: 10px; }
+  .mc .plan.picked { border: 2px solid #2e8b57; }
+  .mc .note { font-size: .8rem; color: #777; font-style: italic; }
+  .mc details { border: 1px solid #ddd; border-radius: 6px; margin: 6px 0; padding: 6px 10px; }
+  .mc summary { cursor: pointer; font-weight: 600; }
+  .mc summary .sub { font-weight: 400; color: #555; }
+  .mc pre { background: #f6f6f8; padding: 8px; overflow-x: auto; font-size: .78rem; }
+  .mc ul.rules { list-style: none; padding-left: 0; }
+</style>
+</head>
+<body>
+<div class="mc">
+  <p class="disclaimer">{{ disclaimer }}</p>
+  <p class="note">Run {{ r.run_id }} · {{ ticker }} · data as of {{ r.data_as_of }} · decision date {{ r.decision_date }}</p>
+
+  {# 1. Verdict box #}
+  <div class="verdict {{ r.judge.decision }}">
+    <div class="big">{{ verdict }}</div>
+    <div class="stats">
+      <span>Council probability up: <b>{{ "%.0f"|format(r.mediator.p_council * 100) }}%</b></span>
+      <span>Confidence: <b>{{ "%.0f"|format(r.judge.confidence * 100) }}%</b></span>
+      <span>Horizon: <b>{{ r.request.horizon_days }} days</b></span>
+    </div>
+    <p>{{ s.verdict }}{% if 'verdict' in fallback %} <span class="note">(template version)</span>{% endif %}</p>
+  </div>
+
+  {# 2. Your rules #}
+  <h2>Your rules</h2>
+  <ul class="rules">
+    {% for c in r.rules %}<li>{{ "✅" if c.passed else "❌" }} {{ c.text }}</li>{% endfor %}
+  </ul>
+  <p>{{ s.rules }}{% if 'rules' in fallback %} <span class="note">(template version)</span>{% endif %}</p>
+
+  {# 3. Your idea vs the council #}
+  <h2>Your idea vs the council</h2>
+  <p><b>{{ n_support }}</b> analysts support your idea · <b>{{ n_challenge }}</b> challenge it.</p>
+  <p>{{ s.idea_vs_council }}{% if 'idea_vs_council' in fallback %} <span class="note">(template version)</span>{% endif %}</p>
+
+  {# 4. One card per analyst #}
+  <h2>The analysts</h2>
+  <div class="cards">
+    {% for f in folders %}{% set sg = f.signal %}
+    <div class="card">
+      <b>{{ nice(sg.agent) }}</b>
+      <span class="tag {{ sg.user_idea_verdict }}">{{ sg.user_idea_verdict }} your idea</span>
+      <div>{{ sg.recommended_action|upper }} · {{ "%.0f"|format(sg.probability_up * 100) }}% up</div>
+      <img src="{{ f.chart }}" alt="{{ nice(sg.agent) }} reasons chart">
+      <p>{{ s['analyst:' ~ sg.agent] }}{% if ('analyst:' ~ sg.agent) in fallback %} <span class="note">(template version)</span>{% endif %}</p>
+      {% if sg.track_record.validation_accuracy is defined %}
+      <div class="note">Right {{ "%.0f"|format(sg.track_record.validation_accuracy * 100) }}% of the time on past years{% if sg.track_record.n is defined %} ({{ sg.track_record.n|int }} examples){% endif %}</div>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+
+  {# 5. The debate #}
+  <h2>The debate</h2>
+  {% if r.crossexam %}
+  <ul>{% for d in r.crossexam %}<li>{{ nice(d.a) }} vs {{ nice(d.b) }}: {{ d.summary }} ({{ d.n_past }} past cases)</li>{% endfor %}</ul>
+  {% endif %}
+  {% if r.devils_advocate.p_majority_wrong is defined %}
+  <p>😈 Devil's Advocate: in situations like this the majority has been wrong <b>{{ "%.0f"|format(r.devils_advocate.p_majority_wrong * 100) }}%</b> of the time.</p>
+  {% endif %}
+  <p>{{ s.debate }}{% if 'debate' in fallback %} <span class="note">(template version)</span>{% endif %}</p>
+
+  {# 6. Positives and negatives #}
+  <h2>Positives and negatives</h2>
+  <p>{{ s.positives_negatives }}{% if 'positives_negatives' in fallback %} <span class="note">(template version)</span>{% endif %}</p>
+  {% if r.reviews %}
+  <table>
+    <tr><th>Analyst</th><th>👍 Positives</th><th>👎 Negatives</th><th>Evidence</th><th>Fits your rules?</th><th>Trust</th></tr>
+    {% for v in r.reviews %}
+    <tr><td>{{ nice(v.agent) }}</td>
+        <td>{% for p in v.positives %}{{ p }}<br>{% endfor %}</td>
+        <td>{% for n in v.negatives %}{{ n }}<br>{% endfor %}</td>
+        <td>{{ v.evidence_strength }}</td><td>{{ "✅" if v.fits_user_rules else "❌" }}</td>
+        <td>{{ "%.2f"|format(v.trust_score) }}</td></tr>
+    {% endfor %}
+  </table>
+  {% endif %}
+
+  {# 7. The plans #}
+  <h2>The plans</h2>
+  <div class="plans">
+    {% for p in r.mediator.plans %}
+    <div class="plan {% if p.id == r.judge.plan_id %}picked{% endif %}">
+      <b>Plan {{ p.id }}</b>{% if p.id == r.judge.plan_id %} · ⭐ the Judge's pick{% endif %}
+      {% if p.source == 'mediator_original' %}<div class="tag supports">Mediator's own plan</div>{% endif %}
+      <div>{{ p.action|replace('_', ' ')|upper }}{% if p.amount %} S${{ "{:,.0f}".format(p.amount) }}{% endif %}</div>
+      {% if p.steps %}<ul>{% for st in p.steps %}<li>S${{ "{:,.0f}".format(st.amount) }} {{ st.when }}</li>{% endfor %}</ul>{% endif %}
+      {% if p.expected_return_pct is not none %}<div>Expected return: {{ "%+.2f"|format(p.expected_return_pct) }}%</div>{% endif %}
+      {% if p.worst_case_loss is not none %}<div>Worst-case loss: S${{ "{:,.0f}".format(p.worst_case_loss) }}</div>{% endif %}
+      {% if p.p_hit_stop is not none %}<div>Chance of hitting your stop-loss: {{ "%.0f"|format(p.p_hit_stop * 100) }}%</div>{% endif %}
+      {% if p.why_better %}<div class="note">{{ p.why_better }}</div>{% endif %}
+    </div>
+    {% endfor %}
+  </div>
+  {% if r.mediator.dropped %}
+  <p><b>Dropped plans:</b></p>
+  <ul>{% for d in r.mediator.dropped %}<li>{{ d.plan }} — broke rule <b>{{ d.failed_rule }}</b>{% if d.fix_tried %} (fix tried: {{ d.fix_tried }}){% endif %}</li>{% endfor %}</ul>
+  {% endif %}
+  <p>{{ s.plans }}{% if 'plans' in fallback %} <span class="note">(template version)</span>{% endif %}</p>
+
+  {# 8. What would change the decision #}
+  <h2>What would change the decision</h2>
+  {% if r.judge.would_change_if %}<ul>{% for w in r.judge.would_change_if %}<li>{{ w }}</li>{% endfor %}</ul>{% endif %}
+  <p>{{ s.what_would_change }}{% if 'what_would_change' in fallback %} <span class="note">(template version)</span>{% endif %}</p>
+
+  {% for n in info.notes %}<p class="note">{{ n }}</p>{% endfor %}
+
+  {# 9. AI folders: each AI's own output, untouched by Claude #}
+  <h2>📁 AI folders</h2>
+  <p class="note">Everything inside a folder comes straight from that AI, not from Claude, so you can check the report above against the source.</p>
+  {% for f in folders %}{% set sg = f.signal %}
+  <details>
+    <summary>📁 {{ f.title }} <span class="sub">▸ {{ f.summary }}</span></summary>
+    <p><b>Decision:</b> {{ sg.recommended_action|upper }} · probability up {{ sg.probability_up }} ·
+       expected return {{ sg.expected_return_pct }}% · horizon {{ sg.horizon_days }} days · {{ sg.user_idea_verdict }} your idea</p>
+    <p><b>Reasons, by the AI itself:</b></p>
+    <img src="{{ f.chart }}" alt="reasons chart">
+    {% if sg.key_numbers %}<p><b>Key numbers:</b></p>
+    <table>{% for k, v in sg.key_numbers.items() %}<tr><td>{{ k }}</td><td>{{ v }}</td></tr>{% endfor %}</table>{% endif %}
+    {% if sg.track_record %}<p><b>Track record:</b></p>
+    <table>{% for k, v in sg.track_record.items() %}<tr><td>{{ k }}</td><td>{{ v }}</td></tr>{% endfor %}</table>{% endif %}
+    <details><summary>Raw output (JSON)</summary><pre>{{ f.raw }}</pre></details>
+  </details>
+  {% endfor %}
+  {% for f in council_folders %}
+  <details>
+    <summary>📁 {{ f.title }}</summary>
+    <pre>{{ f.raw }}</pre>
+  </details>
+  {% endfor %}
+  <p class="disclaimer">{{ disclaimer }}</p>
+</div>
+</body>
+</html>

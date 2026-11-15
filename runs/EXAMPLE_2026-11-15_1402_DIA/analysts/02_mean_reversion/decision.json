@@ -1,0 +1,12 @@
+{
+  "agent": "mean_reversion",
+  "EXAMPLE_ONLY": true,
+  "probability_up": 0.46,
+  "horizon_days": 20,
+  "expected_return_pct": -0.4,
+  "recommended_action": "wait",
+  "user_idea_verdict": "challenges",
+  "key_numbers": {},
+  "top_reasons": [],
+  "track_record": {}
+}

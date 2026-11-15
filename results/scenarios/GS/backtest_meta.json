@@ -1,0 +1,9 @@
+{
+  "test_window": [
+    "2021-01-01",
+    "2026-10-13"
+  ],
+  "decision_every_trading_days": 5,
+  "index_decisions": 291,
+  "member_decisions": 0
+}
