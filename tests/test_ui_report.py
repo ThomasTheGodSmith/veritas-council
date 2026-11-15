@@ -10,12 +10,13 @@ def test_report_html_has_every_section_and_disclaimer_first():
     s, info = narrator.write_report(r, use_claude=False)
     html = report.render_html(r, s, info)
     body = html.split("<body>", 1)[1]
-    assert body.index(report.DISCLAIMER) < body.index("BUY S$350")
-    for heading in ["Your rules", "Your idea vs the council", "The analysts", "The debate",
-                    "Positives and negatives", "The plans", "What would change the decision", "AI folders"]:
+    assert body.index(report.DISCLAIMER) < body.index("Buy S$350")
+    for heading in ["Your rules", "Your idea and the council", "The analysts", "The debate",
+                    "Strengths and weaknesses of each analyst", "The plans", "What would change the decision", "AI folders"]:
         assert heading in html
     assert html.count("<details>") >= len(r.signals)
-    assert "✅" in html and "data:image/png;base64," in html
+    assert "✓" in html and "data:image/png;base64," in html
+    assert 'class="rosette"' in html
     assert "challenges your idea" in html
 
 

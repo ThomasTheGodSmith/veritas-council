@@ -18,7 +18,6 @@
     </a>
     <nav class="views" aria-label="Views">
       <a href="#ask" data-view="ask">Ask the council</a>
-      <a href="#results" data-view="results">Results</a>
       <a href="#portfolio" data-view="portfolio">Portfolio</a>
       <a href="#method" data-view="method">How it works</a>
     </nav>
@@ -73,23 +72,11 @@
     <div class="outcome" id="outcome" aria-live="polite">
       <div class="empty" id="empty">
         <h2>The council hasn't met yet</h2>
-        <p>Eleven trained analysts will each give their view on your plan. A Judge then decides how much,
-          if anything, to buy, with a stop-loss that keeps you inside your loss limit.</p>
+        <p>Eleven trained analysts will each give their view on your plan, using prices up to the latest
+          close. A Judge then decides how much, if anything, to buy, with a stop-loss that keeps you inside
+          your loss limit. It's a prediction about the coming weeks, which nobody can know yet.</p>
       </div>
     </div>
-  </section>
-
-  <!-- ================================================================ results -->
-  <section class="view" id="view-results" data-view="results" hidden>
-    <div class="results-head">
-      <h1 id="results-title">Results</h1>
-      <p class="lede">Test years 2020–2026, which no model ever saw. S$500 budget, S$50 maximum loss, a decision every
-        5 trading days. Each figure is the average over 20 fair decision calendars, with the range from worst to best.</p>
-    </div>
-    <div id="results-body"></div>
-    <h2 class="sub">Every council we trained</h2>
-    <div class="table-wrap"><table class="data" id="all-results"></table></div>
-    <p class="hint small">Full write-up of training and results: RESULTS.md in the project folder.</p>
   </section>
 
   <!-- ================================================================ portfolio -->
@@ -132,10 +119,6 @@
       <li>Every setting was chosen on training years only, using robust rules that resist getting lucky.</li>
       <li>We compare against simple strategies and report where the council loses, including on profit.</li>
     </ul>
-    <h2>What we found</h2>
-    <p>None of the models predicted direction better than "markets usually rise". Judging risk is what worked: across
-      13 separately trained councils, ours kept investors inside their loss limit more reliably than buying or a plain
-      stop-loss, at the cost of some profit in a rising market.</p>
   </section>
 </main>
 

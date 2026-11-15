@@ -12,6 +12,7 @@ from __future__ import annotations
 import base64
 import io
 import json
+import math
 import shutil
 from pathlib import Path
 
@@ -32,6 +33,48 @@ TEMPLATES = Path(__file__).parent / "templates"
 CONFIG = Path("config/agents.yaml")
 
 
+LABELS = {
+    "trend": "Trend (20 vs 50-day average)", "rsi_centred": "RSI, centred", "rsi": "RSI (14-day)",
+    "macd_hist": "MACD histogram", "sma20_sma50": "20-day vs 50-day average", "z20": "Stretch from 20-day average",
+    "z20_sq": "Stretch, squared", "bb_pct": "Position in Bollinger bands", "dist_sma50": "Distance from 50-day average",
+    "dist_high_250": "Distance from 1-year high", "ret_1": "1-day return", "ret_5": "5-day return",
+    "ret_20": "20-day return", "ret_60": "60-day return", "vol_20": "20-day volatility", "vol_60": "60-day volatility",
+    "vol_ratio": "Volatility, recent vs longer", "volume_z": "Unusual trading volume", "vix": "VIX (market fear)",
+    "vix_chg_20": "VIX change, 20 days", "tnx_chg_20": "10-year yield change", "dxy_chg_20": "US dollar change",
+    "oil_chg_20": "Oil price change", "dff": "Fed funds rate", "t10y2y": "Yield curve (10y minus 2y)",
+    "cpi_yoy": "Inflation (CPI, yearly)", "unrate": "Unemployment rate", "unrate_chg_3m": "Unemployment change, 3 months",
+    "breadth_50": "Share of Dow stocks above 50-day average", "breadth_centred": "Market breadth",
+    "breadth_chg_20": "Breadth change, 20 days", "divergence": "Narrow-rally warning", "logit_bottom_up": "Dow members' combined view",
+    "rel_strength_60": "Strength vs other Dow stocks", "rank_60": "Rank among Dow stocks", "vote_spread": "How split the vote is",
+    "vote_share_up": "Share of analysts saying up", "mean_p": "Average analyst view", "regime_p": "Market mood model",
+    "sigma": "Forecast volatility (GARCH)", "p_bull": "Chance of a bull market", "p_bear": "Chance of a bear market",
+    "p_choppy": "Chance of a choppy market", "validation_accuracy": "Right on past years", "accuracy": "Accuracy",
+    "brier": "Brier score (lower is better)", "n": "Past examples",
+}
+
+
+def label(name) -> str:
+    """A readable name for a model feature (falls back to tidying the raw name)."""
+    s = str(name)
+    return LABELS.get(s, s.replace("_", " ").strip().capitalize())
+
+
+def rosette_svg(decision: str) -> str:
+    """The banknote-style guilloché behind the verdict: a few closed hypotrochoid curves."""
+    seed = {"buy": 1, "wait": 2, "avoid": 3}.get(decision, 1)
+    R, paths = 96, []
+    for k in range(5):
+        r, d, n = 12 + 3 * k + seed, 34 + 7 * k, 420
+        pts = []
+        for i in range(n + 1):
+            t = i / n * math.pi * 2 * r
+            x = (R - r) * math.cos(t) + d * math.cos((R - r) / r * t)
+            y = (R - r) * math.sin(t) - d * math.sin((R - r) / r * t)
+            pts.append(f"{'L' if i else 'M'}{215 + x * 1.42:.1f} {215 + y * 1.42:.1f}")
+        paths.append(f'<path d="{"".join(pts)}"/>')
+    return f'<svg class="rosette" viewBox="0 0 430 430" aria-hidden="true">{"".join(paths)}</svg>'
+
+
 def display_ticker(ticker: str) -> str:
     return "DJIA (DIA)" if ticker in ("^DJI", "DIA") else ticker
 
@@ -49,19 +92,26 @@ def agent_ids() -> dict[str, int]:
 def reasons_chart(sig: Signal) -> bytes:
     """A small horizontal bar chart of the AI's own top reasons (green pushes up, orange pushes down)."""
     reasons = list(sig.top_reasons)[:5]
-    fig, ax = plt.subplots(figsize=(4.2, 1.9), dpi=110)
+    ink, soft = "#173a33", "#4d6660"
+    fig, ax = plt.subplots(figsize=(4.6, 0.55 + 0.42 * max(len(reasons), 2)), dpi=130)
+    fig.patch.set_facecolor("#ffffff")
     if reasons:
-        names = [str(n) for n, _ in reasons][::-1]
+        names = [label(n) for n, _ in reasons][::-1]
         vals = [float(w) for _, w in reasons][::-1]
-        ax.barh(names, vals, color=["#2e8b57" if v >= 0 else "#d9822b" for v in vals])
-        ax.axvline(0, color="#555", lw=0.8)
-        ax.set_xlabel("weight (+ pushes up, − pushes down)", fontsize=7)
-    else:
-        ax.text(0.5, 0.5, "This AI gave no reasons", ha="center", va="center", fontsize=8)
+        bars = ax.barh(names, vals, color=["#1e6e61" if v >= 0 else "#a9443d" for v in vals], height=0.62)
+        ax.axvline(0, color=soft, lw=0.8)
+        span = max(abs(v) for v in vals) or 1.0
+        ax.set_xlim(-span * 1.35, span * 1.35)
+        for b, v in zip(bars, vals):
+            ax.text(v + (span * 0.04 if v >= 0 else -span * 0.04), b.get_y() + b.get_height() / 2, f"{v:+.2f}",
+                    va="center", ha="left" if v >= 0 else "right", fontsize=7, color=soft)
+        ax.set_xticks([])
+        ax.set_xlabel("pushes towards a fall  ←   →  pushes towards a rise", fontsize=7, color=soft)
+    else:   # every analyst explains itself now; this is only a safety net
+        ax.text(0.5, 0.5, "No reasons were given", ha="center", va="center", fontsize=8, color=soft)
         ax.set_xticks([]); ax.set_yticks([])
-    ax.set_title(f"{_nice(sig.agent)}: {sig.probability_up:.0%} chance up", fontsize=9)
-    ax.tick_params(labelsize=7)
-    for side in ("top", "right"):
+    ax.tick_params(labelsize=7.5, colors=ink, length=0)
+    for side in ("top", "right", "bottom", "left"):
         ax.spines[side].set_visible(False)
     fig.tight_layout()
     buf = io.BytesIO()
@@ -101,8 +151,8 @@ def _folders(r: RunResult, charts: dict[str, bytes]) -> list[dict]:
     out = []
     for sg in sorted(r.signals, key=lambda s: ids.get(s.agent, 99)):
         out.append({
-            "title": f"{ids.get(sg.agent, '?')} · {_nice(sg.agent)}",
-            "summary": f"{sg.recommended_action.upper()} · {sg.probability_up:.0%} up · {sg.user_idea_verdict} your idea",
+            "title": f"{ids.get(sg.agent, '?')}. {_nice(sg.agent)}",
+            "summary": f"leans {sg.recommended_action}, {sg.probability_up:.0%} chance of a rise, {sg.user_idea_verdict} your idea",
             "signal": sg, "chart": _b64(charts[sg.agent]),
             "raw": json.dumps(sg.model_dump(mode="json"), indent=2),
         })
@@ -113,8 +163,8 @@ def _council_folders(r: RunResult) -> list[dict]:
     d = r.model_dump(mode="json")
     folders = []
     if r.fundamentals:
-        folders.append({"title": "ℹ️ Fundamentals (info card, no vote)", "raw": json.dumps(d["fundamentals"], indent=2)})
-    folders.append({"title": "Round 2 · Cross-examination",
+        folders.append({"title": "Fundamentals (information only, no vote)", "raw": json.dumps(d["fundamentals"], indent=2)})
+    folders.append({"title": "Round 2: cross-examination",
                     "raw": json.dumps({"crossexam": d["crossexam"], "devils_advocate": d["devils_advocate"]}, indent=2)})
     folders.append({"title": "Checklist", "raw": json.dumps({"rules": d["rules"], "reviews": d["reviews"]}, indent=2)})
     folders.append({"title": "Mediator", "raw": json.dumps(d["mediator"], indent=2)})
@@ -137,7 +187,13 @@ def render_html(r: RunResult, sections: dict[str, str], info: dict | None = None
     info["notes"] = [*info.get("notes", []), *getattr(r, "notes", [])]   # council notes: skipped analysts etc.
     charts = charts or {sg.agent: reasons_chart(sg) for sg in r.signals}
     reviews = {v.agent: v for v in r.reviews}
+    plan = next((p for p in r.mediator.plans if p.id == r.judge.plan_id), None)
+    stop = plan.stop_loss_pct if (plan and r.judge.decision == "buy" and plan.stop_loss_pct) else None
+    bad = (r.risk or {}).get("var95_unprotected_pct", (r.risk or {}).get("var95_used_pct"))
+    j = r.judge
+    title = f"Buy S${j.amount:,.2f}" if j.decision == "buy" else {"wait": "Wait", "avoid": "Don't buy"}[j.decision]
     return _env().get_template("report.html.jinja").render(
+        rosette=rosette_svg(j.decision), verdict_title=title, stop_pct=stop, bad_case=bad, label=label,
         disclaimer=DISCLAIMER, r=r, s=sections, info=info, fallback=set(info.get("fallback", [])),
         ticker=display_ticker(r.request.ticker), verdict=verdict_word(r),
         n_support=sum(sg.user_idea_verdict == "supports" for sg in r.signals),

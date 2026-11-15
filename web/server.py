@@ -66,9 +66,20 @@ def tickers_for(key: str) -> list[dict]:
     return [{"ticker": key, "name": NAMES.get(key, key)}]
 
 
-def summary() -> dict:
-    p = ROOT / "results/summary.json"
-    return json.loads(p.read_text(encoding="utf-8")) if p.exists() else {}
+def strategy_text(models_dir: str) -> str | None:
+    """How this council was set up, in words (chosen on its own training years)."""
+    p = ROOT / models_dir / "strategy.json"
+    if not p.exists():
+        return None
+    s = json.loads(p.read_text(encoding="utf-8"))
+    if s.get("c") is not None:
+        size = f"a volatility-scaled stop (C = {s['c']})"
+    elif s.get("k") in (None, "inf", "Infinity") or (isinstance(s.get("k"), float) and s["k"] == float("inf")):
+        size = "the full budget with a gap-aware stop"
+    else:
+        size = f"risk budget K = {s['k']}"
+    gate = "off" if not s.get("theta") else f"on at {float(s['theta']):.0%}"
+    return f"{size}; direction check {gate}"
 
 
 @app.get("/")
@@ -78,18 +89,12 @@ def index():
 
 @app.get("/api/programs")
 def programs():
-    s = summary()
     out = []
     for key, p in PROGRAMS.items():
         out.append({"key": key, "label": p["label"], "detail": p["detail"],
                     "ready": (ROOT / p["models"] / "strategy.json").exists(),
-                    "tickers": tickers_for(key), "strategy": (s.get(p["summary"]) or {}).get("strategy")})
+                    "tickers": tickers_for(key), "strategy": strategy_text(p["models"])})
     return {"disclaimer": DISCLAIMER, "programs": out}
-
-
-@app.get("/api/results")
-def results():
-    return summary()
 
 
 class RunBody(BaseModel):

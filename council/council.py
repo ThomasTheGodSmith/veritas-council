@@ -75,7 +75,10 @@ def run_council(request: UserRequest, ctx: Context, panel: pd.DataFrame, decisio
             rec = hist.track_record(name, D)
             if rec:
                 rec = {"validation_accuracy": rec["accuracy"], **rec}
-            signals.append(make_signal(a, row, p, pctx, request.thinks_up, rec, request.horizon_days))
+            explain_row = row
+            if hasattr(a, "transform") and name == "dow_breadth":   # its reasons need the whole day's members
+                explain_row = a.transform(day_rows, pctx).iloc[mine]
+            signals.append(make_signal(a, explain_row, p, pctx, request.thinks_up, rec, request.horizon_days))
             probs[name] = np.array([p])
         except Exception as e:      # one broken analyst must not stop the council
             notes.append(f"{name}: failed today ({type(e).__name__}: {str(e)[:120]}), skipped")
@@ -91,6 +94,7 @@ def run_council(request: UserRequest, ctx: Context, panel: pd.DataFrame, decisio
         maj_up = bool(majority_up(da._prob_frame(row_df, probs))[0])
         signals.append(make_signal(da, row, p_da, pctx, request.thinks_up,
                                    {"note_in_sample_on_validation": 1.0}, request.horizon_days))
+        signals[-1].top_reasons = [(k, round(float(v), 4)) for k, v in drivers][:3]   # its own LightGBM drivers
         da_out = {
             "p_majority_wrong": round(float(p_wrong[0]), 4),
             "majority_says_up": maj_up,

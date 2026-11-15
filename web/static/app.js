@@ -7,7 +7,18 @@ const NAMES = {
   devils_advocate: "Devil's Advocate",
 };
 const ORDER = ["Always buy", "Random, same buy rate", "Always buy + stop-loss", "Council"];
-const state = { programs: [], results: {}, last: null, lastRequest: null };
+const state = { programs: [], last: null, lastRequest: null };
+
+// The prediction covers the next N trading days after the decision day; this is when it can be checked.
+function addTradingDays(isoDate, n) {
+  const d = new Date(isoDate + "T00:00:00");
+  let left = n;
+  while (left > 0) {
+    d.setDate(d.getDate() + 1);
+    if (d.getDay() !== 0 && d.getDay() !== 6) left--;
+  }
+  return d.toLocaleDateString("en-SG", { day: "numeric", month: "short", year: "numeric" });
+}
 
 const money = (v, d = 0) => "S$" + Number(v).toLocaleString("en-SG", { minimumFractionDigits: d, maximumFractionDigits: d });
 const pct = (v, d = 0) => (v * 100).toFixed(d) + "%";
@@ -39,15 +50,13 @@ function show(view) {
   document.querySelectorAll(".views a").forEach((a) => a.toggleAttribute("aria-current", a.dataset.view === view) || a.setAttribute("aria-current", a.dataset.view === view ? "page" : "false"));
   document.querySelectorAll(".views a").forEach((a) => { if (a.dataset.view !== view) a.removeAttribute("aria-current"); });
   if (view === "portfolio") loadPortfolio();
-  if (view === "results") renderResults();
 }
 window.addEventListener("hashchange", () => show(location.hash.slice(1) || "ask"));
 
 // --------------------------------------------------------------------------- councils
 async function init() {
-  const [progs, results] = await Promise.all([fetch("/api/programs").then((r) => r.json()), fetch("/api/results").then((r) => r.json())]);
+  const progs = await fetch("/api/programs").then((r) => r.json());
   state.programs = progs.programs;
-  state.results = results;
   $("#disclaimer").textContent = progs.disclaimer;
   $("#program").innerHTML = state.programs
     .map((p) => `<option value="${p.key}" ${p.ready ? "" : "disabled"}>${esc(p.label)}: ${esc(p.detail)}${p.ready ? "" : " (not trained)"}</option>`)
@@ -64,7 +73,6 @@ function onProgram() {
   $("#council-note").textContent = p.strategy
     ? `The ${p.label} council. Settings chosen on its own training years: ${p.strategy}.`
     : `The ${p.label} council.`;
-  renderResults();
 }
 
 // --------------------------------------------------------------------------- ask
@@ -112,8 +120,10 @@ function renderRun(data) {
   const denom = j.decision === "buy" ? `Buy ${money(j.amount, 2)}` : j.decision === "wait" ? "Wait" : "Don't buy";
   const stop = plan && plan.stop_loss_pct && j.decision === "buy" ? plan.stop_loss_pct : null;
   const facts = [
-    ["Decision for", r.decision_date],
     ["Data up to", r.data_as_of],
+    ["Buy at the open on", r.decision_date],
+    ["Prediction covers", `${req.horizon_days} trading days`],
+    ["You'll know if it was right around", addTradingDays(r.decision_date, req.horizon_days)],
     ["Chance of a rise", pct(r.mediator.p_council)],
     ["1-in-20 bad period", risk.var95_unprotected_pct != null ? "−" + pct(risk.var95_unprotected_pct) : risk.var95_used_pct != null ? "−" + pct(risk.var95_used_pct) : "–"],
     ...(stop ? [["Stop-loss", pct(stop, 1) + " below the price"]] : []),
@@ -183,55 +193,6 @@ async function approve() {
   const ok = data.status === "filled" || data.status === "placed" || data.status === "submitted";
   $("#order-msg").innerHTML = `<p class="toast ${ok ? "" : "bad"}">${esc(data.message || data.status)}</p>`;
   if (!ok) btn.disabled = false;
-}
-
-// --------------------------------------------------------------------------- results
-const KEY = { main: "DOW", AMD: "AMD", JNJ: "JNJ", MOS: "MOS", DJI: "DJI" };
-function renderResults() {
-  const p = program();
-  if (!p) return;
-  const s = state.results[KEY[p.key]];
-  $("#results-title").textContent = `${p.label} council: results`;
-  if (!s || !s.results) {
-    $("#results-body").innerHTML = `<p class="hint">No results saved for this council yet. Run eval.robust for it.</p>`;
-  } else {
-    const rows = ORDER.map((n) => [n, s.results[n]]);
-    const lo = Math.min(...rows.map(([, x]) => x.S500_becomes.min), 500), hi = Math.max(...rows.map(([, x]) => x.S500_becomes.max));
-    const pos = (v) => ((v - lo) / (hi - lo)) * 100;
-    const best = (f, cmp) => rows.reduce((a, b) => (cmp(f(b[1]), f(a[1])) ? b : a))[0];
-    const bProfit = best((x) => x.S500_becomes.mean, (a, b) => a > b);
-    const bDrop = best((x) => x.worst_drop.mean, (a, b) => a > b);
-    const bLoss = best((x) => x.lost_over_50.mean, (a, b) => a < b);
-    $("#results-body").innerHTML = `
-      <div class="table-wrap"><table class="data">
-        <thead><tr><th>Strategy</th><th class="num">S$500 became</th><th class="num">Profit</th><th>Range over 20 calendars</th>
-          <th class="num">Worst drop from peak</th><th class="num">Purchases that lost over S$50</th><th class="num">Worst single loss</th></tr></thead>
-        <tbody>${rows.map(([n, x]) => `
-          <tr class="${n === "Council" ? "ours" : ""}">
-            <td>${esc(n)}</td>
-            <td class="num ${n === bProfit ? "best" : ""}">${money(x.S500_becomes.mean)}</td>
-            <td class="num">${money(x.S500_becomes.mean - 500)} (${signed(x.profit_pct.mean)})</td>
-            <td><span class="range" title="${money(x.S500_becomes.min)} to ${money(x.S500_becomes.max)}">
-              <span class="start" style="left:${pos(500)}%"></span>
-              <i style="left:${pos(x.S500_becomes.min)}%;width:${pos(x.S500_becomes.max) - pos(x.S500_becomes.min)}%"></i>
-              <b style="left:${pos(x.S500_becomes.mean)}%"></b></span></td>
-            <td class="num ${n === bDrop ? "best" : ""}">${pct(x.worst_drop.mean)}</td>
-            <td class="num ${n === bLoss ? "best" : ""}">${x.lost_over_50.mean.toFixed(1)}</td>
-            <td class="num">${money(x.worst_loss.mean)}</td>
-          </tr>`).join("")}</tbody>
-      </table></div>
-      <p class="legend"><span>Dot: average over the 20 calendars. Line: worst to best calendar. Amber mark: the S$500 you started with.</span>
-        <span>Green: the best in that column.</span></p>
-      <p class="hint small">Settings chosen on training years only: ${esc(s.strategy)}. Test window ${esc(s.test_window.join(" to "))}.</p>`;
-  }
-  const all = Object.entries(state.results);
-  $("#all-results").innerHTML = `<thead><tr><th>Council</th><th class="num">Always buy</th><th class="num">Always buy + stop-loss</th>
-    <th class="num">Council</th><th class="num">Lost over S$50: buy / stop / council</th></tr></thead><tbody>` +
-    all.map(([k, v]) => {
-      const x = v.results, c = (n) => `${money(x[n].S500_becomes.mean)} <span class="hint">(${signed(x[n].profit_pct.mean)}, ${pct(x[n].worst_drop.mean)})</span>`;
-      return `<tr><td>${esc(v.label)}</td><td class="num">${c("Always buy")}</td><td class="num">${c("Always buy + stop-loss")}</td>
-        <td class="num">${c("Council")}</td><td class="num">${x["Always buy"].lost_over_50.mean.toFixed(1)} / ${x["Always buy + stop-loss"].lost_over_50.mean.toFixed(1)} / <b>${x["Council"].lost_over_50.mean.toFixed(1)}</b></td></tr>`;
-    }).join("") + `</tbody>`;
 }
 
 // --------------------------------------------------------------------------- portfolio

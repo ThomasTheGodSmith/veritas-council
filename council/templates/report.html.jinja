@@ -3,162 +3,260 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Market Council report</title>
+<title>Market Council report: {{ ticker }}, {{ r.decision_date }}</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=Instrument+Serif&display=swap">
 <style>
-  .mc { font-family: system-ui, -apple-system, "Segoe UI", sans-serif; color: #1d1d1f; background: #fff;
-        max-width: 960px; margin: 0 auto; padding: 16px; line-height: 1.45; }
-  .mc h2 { font-size: 1.15rem; margin: 1.4rem 0 .5rem; border-bottom: 1px solid #e3e3e3; padding-bottom: 4px; }
-  .mc .disclaimer { background: #fff4d6; border: 1px solid #e8c766; padding: 8px 12px; border-radius: 6px; font-weight: 600; }
-  .mc .verdict { border: 2px solid #888; border-radius: 10px; padding: 14px 18px; margin: 14px 0; }
-  .mc .verdict.buy { border-color: #2e8b57; background: #eef8f1; }
-  .mc .verdict.wait { border-color: #c9a227; background: #fdf8e8; }
-  .mc .verdict.avoid { border-color: #c0392b; background: #fbeeee; }
-  .mc .big { font-size: 2rem; font-weight: 800; letter-spacing: .02em; }
-  .mc .stats span { display: inline-block; margin-right: 18px; color: #444; }
-  .mc .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
-  .mc .card { border: 1px solid #ddd; border-radius: 8px; padding: 10px 12px; }
-  .mc .card img, .mc details img { max-width: 100%; height: auto; }
-  .mc .tag { font-size: .8rem; padding: 1px 8px; border-radius: 10px; font-weight: 600; }
-  .mc .supports { background: #e3f4e8; color: #1e6b3d; }
-  .mc .challenges { background: #fde9dc; color: #9a4a12; }
-  .mc table { border-collapse: collapse; width: 100%; font-size: .9rem; }
-  .mc th, .mc td { border: 1px solid #ddd; padding: 6px 8px; text-align: left; vertical-align: top; }
-  .mc th { background: #f4f4f6; }
-  .mc .plans { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
-  .mc .plan { border: 1px solid #ccc; border-radius: 8px; padding: 10px; }
-  .mc .plan.picked { border: 2px solid #2e8b57; }
-  .mc .note { font-size: .8rem; color: #777; font-style: italic; }
-  .mc details { border: 1px solid #ddd; border-radius: 6px; margin: 6px 0; padding: 6px 10px; }
-  .mc summary { cursor: pointer; font-weight: 600; }
-  .mc summary .sub { font-weight: 400; color: #555; }
-  .mc pre { background: #f6f6f8; padding: 8px; overflow-x: auto; font-size: .78rem; }
-  .mc ul.rules { list-style: none; padding-left: 0; }
+  /* Same identity as the website: banknote engraving. Paper ground, engraving-green ink, one rosette. */
+  :root { --paper:#f3f6f4; --sheet:#fbfcfb; --ink:#173a33; --soft:#4d6660; --teal:#1e6e61; --teal-w:#e2eeea;
+          --amber:#b9822a; --amber-w:#f5ecd9; --red:#a9443d; --red-w:#f4e4e2; --rule:#d3ddd8;
+          --serif:"Instrument Serif","Iowan Old Style",Georgia,serif; --sans:"Instrument Sans","Segoe UI",system-ui,sans-serif; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--paper); color: var(--ink); font: 15.5px/1.6 var(--sans); }
+  .mc { max-width: 980px; margin: 0 auto; padding: 32px 24px 64px; display: grid; gap: 34px; }
+  h1, h2, h3 { margin: 0; line-height: 1.2; text-wrap: balance; }
+  h2 { font-family: var(--serif); font-weight: 400; font-size: 1.75rem; padding-bottom: 8px; border-bottom: 1px solid var(--rule); }
+  h3 { font-size: 1rem; font-weight: 600; }
+  p { margin: 0; }
+  .soft { color: var(--soft); }
+  .small { font-size: .86rem; }
+  .tv { font-size: .78rem; color: var(--soft); }
+  section { display: grid; gap: 14px; }
+
+  .head { display: flex; justify-content: space-between; align-items: end; gap: 16px; flex-wrap: wrap; }
+  .brand { display: flex; align-items: center; gap: 10px; font-family: var(--serif); font-size: 1.5rem; }
+  .brand svg { width: 30px; height: 30px; fill: none; stroke: var(--teal); stroke-width: 1.6; }
+  .meta { display: flex; gap: 22px; flex-wrap: wrap; font-variant-numeric: tabular-nums; }
+  .meta div { display: grid; }
+  .meta dt { font-size: .78rem; color: var(--soft); }
+  .meta dd { margin: 0; font-weight: 500; }
+  .disclaimer { background: var(--amber-w); color: #7a5414; padding: 8px 14px; border-radius: 8px; font-weight: 500; }
+
+  .note { position: relative; overflow: hidden; background: var(--sheet); border: 1px solid var(--rule); border-radius: 14px; padding: 30px 32px; display: grid; gap: 14px; }
+  .note svg.rosette { position: absolute; right: -80px; top: 50%; transform: translateY(-50%); width: 430px; height: 430px; }
+  .note svg.rosette path { fill: none; stroke: var(--teal); stroke-width: .6; stroke-opacity: .3; }
+  .note.wait svg.rosette path { stroke: var(--amber); }
+  .note.avoid svg.rosette path { stroke: var(--red); }
+  .note > :not(svg) { position: relative; }
+  .denom { font-family: var(--serif); font-weight: 400; font-size: 4.4rem; line-height: 1; }
+  .note.buy .denom { color: var(--teal); } .note.wait .denom { color: var(--amber); } .note.avoid .denom { color: var(--red); }
+  .facts { display: flex; flex-wrap: wrap; gap: 10px 30px; font-variant-numeric: tabular-nums; }
+  .facts div { display: grid; }
+  .facts dt { font-size: .8rem; color: var(--soft); }
+  .facts dd { margin: 0; font-weight: 600; font-size: 1.05rem; }
+  .verdict-text { max-width: 68ch; }
+
+  .checks { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+  .checks li { display: grid; grid-template-columns: 24px 1fr; }
+  .checks .ok { color: var(--teal); font-weight: 700; } .checks .no { color: var(--red); font-weight: 700; }
+
+  .split { display: flex; height: 12px; border-radius: 999px; overflow: hidden; background: var(--rule); max-width: 520px; }
+  .split .s { background: var(--teal); } .split .c { background: var(--red); }
+  .split-legend { display: flex; gap: 22px; font-size: .9rem; }
+  .split-legend b { font-variant-numeric: tabular-nums; }
+
+  .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 14px; }
+  .card { background: var(--sheet); border: 1px solid var(--rule); border-radius: 12px; padding: 16px; display: grid; gap: 10px; align-content: start; }
+  .card-top { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+  .tag { font-size: .78rem; padding: 2px 9px; border-radius: 999px; white-space: nowrap; }
+  .tag.supports { background: var(--teal-w); color: var(--teal); } .tag.challenges { background: var(--red-w); color: var(--red); }
+  .meter { position: relative; height: 7px; border-radius: 999px; background: var(--paper); }
+  .meter i { position: absolute; inset: 0 auto 0 0; border-radius: 999px; background: var(--teal); }
+  .meter.down i { background: var(--red); }
+  .meter b { position: absolute; left: 50%; top: -3px; bottom: -3px; width: 1px; background: var(--soft); }
+  .prob { display: flex; justify-content: space-between; font-size: .88rem; font-variant-numeric: tabular-nums; }
+  .card img { width: 100%; height: auto; border-radius: 6px; background: #fff; }
+
+  .debate { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+  .debate li { padding-left: 14px; border-left: 2px solid var(--rule); }
+  .quote { background: var(--sheet); border-left: 3px solid var(--amber); padding: 12px 16px; border-radius: 0 8px 8px 0; }
+
+  .table-wrap { overflow-x: auto; border: 1px solid var(--rule); border-radius: 12px; background: var(--sheet); }
+  table { border-collapse: collapse; width: 100%; font-size: .9rem; }
+  th, td { text-align: left; vertical-align: top; padding: 9px 12px; border-bottom: 1px solid var(--rule); }
+  th { background: var(--paper); color: var(--soft); font-weight: 500; }
+  tr:last-child td { border-bottom: 0; }
+  td.num { font-variant-numeric: tabular-nums; }
+
+  .plans { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
+  .plan { background: var(--sheet); border: 1px solid var(--rule); border-radius: 12px; padding: 14px 16px; display: grid; gap: 4px; align-content: start; }
+  .plan.picked { border: 2px solid var(--teal); }
+  .plan .act { font-family: var(--serif); font-size: 1.5rem; }
+  .plan .pick { color: var(--teal); font-size: .82rem; font-weight: 600; }
+
+  .lines { margin: 0; padding-left: 18px; display: grid; gap: 6px; }
+  details { background: var(--sheet); border: 1px solid var(--rule); border-radius: 10px; padding: 10px 14px; }
+  details + details { margin-top: 8px; }
+  summary { cursor: pointer; font-weight: 600; }
+  summary .sub { font-weight: 400; color: var(--soft); margin-left: 6px; }
+  details[open] > summary { margin-bottom: 10px; }
+  details .inner { display: grid; gap: 10px; }
+  details img { max-width: 460px; width: 100%; height: auto; }
+  pre { background: var(--paper); padding: 10px; border-radius: 8px; overflow-x: auto; font-size: .76rem; margin: 0; }
+  .foot { border-top: 1px solid var(--rule); padding-top: 14px; }
+  @media print { body { background: #fff; } details { break-inside: avoid; } }
+  @media (max-width: 640px) { .denom { font-size: 3rem; } .note { padding: 24px 20px; } .note svg.rosette { right: -190px; opacity: .6; } }
 </style>
 </head>
 <body>
 <div class="mc">
-  <p class="disclaimer">{{ disclaimer }}</p>
-  <p class="note">Run {{ r.run_id }} · {{ ticker }} · data as of {{ r.data_as_of }} · decision date {{ r.decision_date }}</p>
 
-  {# 1. Verdict box #}
-  <div class="verdict {{ r.judge.decision }}">
-    <div class="big">{{ verdict }}</div>
-    <div class="stats">
-      <span>Council probability up: <b>{{ "%.0f"|format(r.mediator.p_council * 100) }}%</b></span>
-      <span>Confidence: <b>{{ "%.0f"|format(r.judge.confidence * 100) }}%</b></span>
-      <span>Horizon: <b>{{ r.request.horizon_days }} days</b></span>
-    </div>
-    <p>{{ s.verdict }}{% if 'verdict' in fallback %} <span class="note">(template version)</span>{% endif %}</p>
-  </div>
+  <header class="head">
+    <div class="brand"><svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="14.5"/><path d="M9 21V11l7 7 7-7v10"/></svg>Market Council report</div>
+    <dl class="meta">
+      <div><dt>Asked about</dt><dd>{{ ticker }}</dd></div>
+      <div><dt>Decision for</dt><dd>{{ r.decision_date }}</dd></div>
+      <div><dt>Data up to</dt><dd>{{ r.data_as_of }}</dd></div>
+      <div><dt>Run</dt><dd>{{ r.run_id }}</dd></div>
+    </dl>
+  </header>
+  <p class="disclaimer">{{ disclaimer }}</p>
+
+  {# 1. Verdict #}
+  <article class="note {{ r.judge.decision }}">
+    {{ rosette|safe }}
+    <p class="soft">The Judge's decision</p>
+    <h1 class="denom">{{ verdict_title }}</h1>
+    <dl class="facts">
+      <div><dt>Council's chance of a rise</dt><dd>{{ "%.0f"|format(r.mediator.p_council * 100) }}%</dd></div>
+      <div><dt>Holding period</dt><dd>{{ r.request.horizon_days }} trading days</dd></div>
+      <div><dt>Your budget</dt><dd>S${{ "{:,.0f}".format(r.request.amount) }}</dd></div>
+      <div><dt>Most you'll lose</dt><dd>S${{ "{:,.0f}".format(r.request.max_loss) }}</dd></div>
+      {% if stop_pct %}<div><dt>Stop-loss</dt><dd>{{ "%.1f"|format(stop_pct * 100) }}% below the price</dd></div>{% endif %}
+      {% if bad_case %}<div><dt>1-in-20 bad period</dt><dd>−{{ "%.0f"|format(bad_case * 100) }}%</dd></div>{% endif %}
+    </dl>
+    <p class="verdict-text">{{ s.verdict }}{% if 'verdict' in fallback %} <span class="tv">(template wording)</span>{% endif %}</p>
+  </article>
 
   {# 2. Your rules #}
-  <h2>Your rules</h2>
-  <ul class="rules">
-    {% for c in r.rules %}<li>{{ "✅" if c.passed else "❌" }} {{ c.text }}</li>{% endfor %}
-  </ul>
-  <p>{{ s.rules }}{% if 'rules' in fallback %} <span class="note">(template version)</span>{% endif %}</p>
+  <section>
+    <h2>Your rules</h2>
+    <ul class="checks">
+      {% for c in r.rules %}<li><span class="{{ 'ok' if c.passed else 'no' }}">{{ "✓" if c.passed else "✕" }}</span><span>{{ c.text }}</span></li>{% endfor %}
+    </ul>
+    <p>{{ s.rules }}{% if 'rules' in fallback %} <span class="tv">(template wording)</span>{% endif %}</p>
+  </section>
 
   {# 3. Your idea vs the council #}
-  <h2>Your idea vs the council</h2>
-  <p><b>{{ n_support }}</b> analysts support your idea · <b>{{ n_challenge }}</b> challenge it.</p>
-  <p>{{ s.idea_vs_council }}{% if 'idea_vs_council' in fallback %} <span class="note">(template version)</span>{% endif %}</p>
-
-  {# 4. One card per analyst #}
-  <h2>The analysts</h2>
-  <div class="cards">
-    {% for f in folders %}{% set sg = f.signal %}
-    <div class="card">
-      <b>{{ nice(sg.agent) }}</b>
-      <span class="tag {{ sg.user_idea_verdict }}">{{ sg.user_idea_verdict }} your idea</span>
-      <div>{{ sg.recommended_action|upper }} · {{ "%.0f"|format(sg.probability_up * 100) }}% up</div>
-      <img src="{{ f.chart }}" alt="{{ nice(sg.agent) }} reasons chart">
-      <p>{{ s['analyst:' ~ sg.agent] }}{% if ('analyst:' ~ sg.agent) in fallback %} <span class="note">(template version)</span>{% endif %}</p>
-      {% if sg.track_record.validation_accuracy is defined %}
-      <div class="note">Right {{ "%.0f"|format(sg.track_record.validation_accuracy * 100) }}% of the time on past years{% if sg.track_record.n is defined %} ({{ sg.track_record.n|int }} examples){% endif %}</div>
-      {% endif %}
+  <section>
+    <h2>Your idea and the council</h2>
+    {% set total = n_support + n_challenge %}
+    <div class="split" role="img" aria-label="{{ n_support }} support, {{ n_challenge }} challenge">
+      <span class="s" style="width: {{ (100 * n_support / total) if total else 0 }}%"></span>
+      <span class="c" style="width: {{ (100 * n_challenge / total) if total else 0 }}%"></span>
     </div>
-    {% endfor %}
-  </div>
+    <div class="split-legend"><span><b>{{ n_support }}</b> support your idea</span><span><b>{{ n_challenge }}</b> challenge it</span></div>
+    <p>{{ s.idea_vs_council }}{% if 'idea_vs_council' in fallback %} <span class="tv">(template wording)</span>{% endif %}</p>
+  </section>
+
+  {# 4. The analysts #}
+  <section>
+    <h2>The analysts</h2>
+    <p class="soft small">Each chart shows the analyst's own reasons: bars to the right pushed it towards a rise, bars to the left towards a fall.</p>
+    <div class="cards">
+      {% for f in folders %}{% set sg = f.signal %}
+      <div class="card">
+        <div class="card-top"><h3>{{ nice(sg.agent) }}</h3><span class="tag {{ sg.user_idea_verdict }}">{{ "supports you" if sg.user_idea_verdict == "supports" else "challenges you" }}</span></div>
+        <div class="meter {{ 'down' if sg.probability_up < 0.5 else '' }}"><i style="width: {{ '%.1f'|format(sg.probability_up * 100) }}%"></i><b></b></div>
+        <div class="prob"><span>{{ "%.0f"|format(sg.probability_up * 100) }}% chance of a rise</span><span class="soft">{{ {"buy": "leans buy", "wait": "leans wait", "avoid": "leans avoid"}[sg.recommended_action] }}</span></div>
+        <img src="{{ f.chart }}" alt="{{ nice(sg.agent) }}: its reasons">
+        <p class="small">{{ s['analyst:' ~ sg.agent] }}{% if ('analyst:' ~ sg.agent) in fallback %} <span class="tv">(template wording)</span>{% endif %}</p>
+        {% if sg.track_record.validation_accuracy is defined %}
+        <p class="tv">Right {{ "%.0f"|format(sg.track_record.validation_accuracy * 100) }}% of the time on past years{% if sg.track_record.n is defined %} ({{ "{:,}".format(sg.track_record.n|int) }} examples){% endif %}</p>
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+  </section>
 
   {# 5. The debate #}
-  <h2>The debate</h2>
-  {% if r.crossexam %}
-  <ul>{% for d in r.crossexam %}<li>{{ nice(d.a) }} vs {{ nice(d.b) }}: {{ d.summary }} ({{ d.n_past }} past cases)</li>{% endfor %}</ul>
-  {% endif %}
-  {% if r.devils_advocate.p_majority_wrong is defined %}
-  <p>😈 Devil's Advocate: in situations like this the majority has been wrong <b>{{ "%.0f"|format(r.devils_advocate.p_majority_wrong * 100) }}%</b> of the time.</p>
-  {% endif %}
-  <p>{{ s.debate }}{% if 'debate' in fallback %} <span class="note">(template version)</span>{% endif %}</p>
+  <section>
+    <h2>The debate</h2>
+    {% if r.devils_advocate.p_majority_wrong is defined %}
+    <p class="quote"><b>Devil's Advocate:</b> in situations like this, the majority has been wrong {{ "%.0f"|format(r.devils_advocate.p_majority_wrong * 100) }}% of the time.</p>
+    {% endif %}
+    {% if r.crossexam %}
+    <ul class="debate">{% for d in r.crossexam %}<li><b>{{ nice(d.a) }} and {{ nice(d.b) }}:</b> {{ d.summary }} <span class="soft">({{ d.n_past }} past cases)</span></li>{% endfor %}</ul>
+    {% else %}<p class="soft">No two analysts disagreed today.</p>{% endif %}
+    <p>{{ s.debate }}{% if 'debate' in fallback %} <span class="tv">(template wording)</span>{% endif %}</p>
+  </section>
 
   {# 6. Positives and negatives #}
-  <h2>Positives and negatives</h2>
-  <p>{{ s.positives_negatives }}{% if 'positives_negatives' in fallback %} <span class="note">(template version)</span>{% endif %}</p>
-  {% if r.reviews %}
-  <table>
-    <tr><th>Analyst</th><th>👍 Positives</th><th>👎 Negatives</th><th>Evidence</th><th>Fits your rules?</th><th>Trust</th></tr>
-    {% for v in r.reviews %}
-    <tr><td>{{ nice(v.agent) }}</td>
-        <td>{% for p in v.positives %}{{ p }}<br>{% endfor %}</td>
-        <td>{% for n in v.negatives %}{{ n }}<br>{% endfor %}</td>
-        <td>{{ v.evidence_strength }}</td><td>{{ "✅" if v.fits_user_rules else "❌" }}</td>
-        <td>{{ "%.2f"|format(v.trust_score) }}</td></tr>
-    {% endfor %}
-  </table>
-  {% endif %}
+  <section>
+    <h2>Strengths and weaknesses of each analyst</h2>
+    <p>{{ s.positives_negatives }}{% if 'positives_negatives' in fallback %} <span class="tv">(template wording)</span>{% endif %}</p>
+    {% if r.reviews %}
+    <div class="table-wrap"><table>
+      <tr><th>Analyst</th><th>Strengths</th><th>Weaknesses</th><th>Evidence</th><th>Fits your rules</th><th>Trust</th></tr>
+      {% for v in r.reviews %}
+      <tr><td><b>{{ nice(v.agent) }}</b></td>
+          <td>{% for p in v.positives %}{{ p }}{% if not loop.last %}<br>{% endif %}{% endfor %}</td>
+          <td>{% for n in v.negatives %}{{ n }}{% if not loop.last %}<br>{% endif %}{% endfor %}</td>
+          <td>{{ v.evidence_strength }}</td><td>{{ "yes" if v.fits_user_rules else "no" }}</td>
+          <td class="num">{{ "%.2f"|format(v.trust_score) }}</td></tr>
+      {% endfor %}
+    </table></div>
+    {% endif %}
+  </section>
 
   {# 7. The plans #}
-  <h2>The plans</h2>
-  <div class="plans">
-    {% for p in r.mediator.plans %}
-    <div class="plan {% if p.id == r.judge.plan_id %}picked{% endif %}">
-      <b>Plan {{ p.id }}</b>{% if p.id == r.judge.plan_id %} · ⭐ the Judge's pick{% endif %}
-      {% if p.source == 'mediator_original' %}<div class="tag supports">Mediator's own plan</div>{% endif %}
-      <div>{{ p.action|replace('_', ' ')|upper }}{% if p.amount %} S${{ "{:,.0f}".format(p.amount) }}{% endif %}</div>
-      {% if p.steps %}<ul>{% for st in p.steps %}<li>S${{ "{:,.0f}".format(st.amount) }} {{ st.when }}</li>{% endfor %}</ul>{% endif %}
-      {% if p.expected_return_pct is not none %}<div>Expected return: {{ "%+.2f"|format(p.expected_return_pct) }}%</div>{% endif %}
-      {% if p.worst_case_loss is not none %}<div>Worst-case loss: S${{ "{:,.0f}".format(p.worst_case_loss) }}</div>{% endif %}
-      {% if p.p_hit_stop is not none %}<div>Chance of hitting your stop-loss: {{ "%.0f"|format(p.p_hit_stop * 100) }}%</div>{% endif %}
-      {% if p.why_better %}<div class="note">{{ p.why_better }}</div>{% endif %}
+  <section>
+    <h2>The plans</h2>
+    <div class="plans">
+      {% for p in r.mediator.plans %}
+      <div class="plan {% if p.id == r.judge.plan_id %}picked{% endif %}">
+        <span class="soft small">Plan {{ p.id }}{% if p.source == 'mediator_original' %}, the Mediator's own idea{% endif %}</span>
+        <span class="act">{{ p.action|replace('_', ' ')|capitalize }}{% if p.amount %} S${{ "{:,.0f}".format(p.amount) }}{% endif %}</span>
+        {% if p.id == r.judge.plan_id %}<span class="pick">The Judge's choice</span>{% endif %}
+        {% if p.steps %}<ul class="lines small">{% for st in p.steps %}<li>S${{ "{:,.0f}".format(st.amount) }} {{ st.when }}</li>{% endfor %}</ul>{% endif %}
+        {% if p.expected_return_pct is not none %}<span class="small">Expected return {{ "%+.2f"|format(p.expected_return_pct) }}%</span>{% endif %}
+        {% if p.worst_case_loss is not none %}<span class="small">1-in-20 worst loss S${{ "{:,.0f}".format(p.worst_case_loss) }}</span>{% endif %}
+        {% if p.p_hit_stop is not none %}<span class="small">Chance the stop-loss sells: {{ "%.0f"|format(p.p_hit_stop * 100) }}%</span>{% endif %}
+        {% if p.why_better %}<span class="tv">{{ p.why_better }}</span>{% endif %}
+      </div>
+      {% endfor %}
     </div>
-    {% endfor %}
-  </div>
-  {% if r.mediator.dropped %}
-  <p><b>Dropped plans:</b></p>
-  <ul>{% for d in r.mediator.dropped %}<li>{{ d.plan }} — broke rule <b>{{ d.failed_rule }}</b>{% if d.fix_tried %} (fix tried: {{ d.fix_tried }}){% endif %}</li>{% endfor %}</ul>
-  {% endif %}
-  <p>{{ s.plans }}{% if 'plans' in fallback %} <span class="note">(template version)</span>{% endif %}</p>
+    {% if r.mediator.dropped %}
+    <p class="small"><b>Plans dropped for breaking a rule:</b></p>
+    <ul class="lines small">{% for d in r.mediator.dropped %}<li>{{ d.plan }}: broke the {{ d.failed_rule|replace('_', ' ') }} rule{% if d.fix_tried %} (fix tried: {{ d.fix_tried }}){% endif %}</li>{% endfor %}</ul>
+    {% endif %}
+    <p>{{ s.plans }}{% if 'plans' in fallback %} <span class="tv">(template wording)</span>{% endif %}</p>
+  </section>
 
   {# 8. What would change the decision #}
-  <h2>What would change the decision</h2>
-  {% if r.judge.would_change_if %}<ul>{% for w in r.judge.would_change_if %}<li>{{ w }}</li>{% endfor %}</ul>{% endif %}
-  <p>{{ s.what_would_change }}{% if 'what_would_change' in fallback %} <span class="note">(template version)</span>{% endif %}</p>
-
-  {% for n in info.notes %}<p class="note">{{ n }}</p>{% endfor %}
+  <section>
+    <h2>What would change the decision</h2>
+    {% if r.judge.would_change_if %}<ul class="lines">{% for w in r.judge.would_change_if %}<li>{{ w }}</li>{% endfor %}</ul>{% endif %}
+    <p>{{ s.what_would_change }}{% if 'what_would_change' in fallback %} <span class="tv">(template wording)</span>{% endif %}</p>
+    {% for n in info.notes %}<p class="tv">{{ n }}</p>{% endfor %}
+  </section>
 
   {# 9. AI folders: each AI's own output, untouched by Claude #}
-  <h2>📁 AI folders</h2>
-  <p class="note">Everything inside a folder comes straight from that AI, not from Claude, so you can check the report above against the source.</p>
-  {% for f in folders %}{% set sg = f.signal %}
-  <details>
-    <summary>📁 {{ f.title }} <span class="sub">▸ {{ f.summary }}</span></summary>
-    <p><b>Decision:</b> {{ sg.recommended_action|upper }} · probability up {{ sg.probability_up }} ·
-       expected return {{ sg.expected_return_pct }}% · horizon {{ sg.horizon_days }} days · {{ sg.user_idea_verdict }} your idea</p>
-    <p><b>Reasons, by the AI itself:</b></p>
-    <img src="{{ f.chart }}" alt="reasons chart">
-    {% if sg.key_numbers %}<p><b>Key numbers:</b></p>
-    <table>{% for k, v in sg.key_numbers.items() %}<tr><td>{{ k }}</td><td>{{ v }}</td></tr>{% endfor %}</table>{% endif %}
-    {% if sg.track_record %}<p><b>Track record:</b></p>
-    <table>{% for k, v in sg.track_record.items() %}<tr><td>{{ k }}</td><td>{{ v }}</td></tr>{% endfor %}</table>{% endif %}
-    <details><summary>Raw output (JSON)</summary><pre>{{ f.raw }}</pre></details>
-  </details>
-  {% endfor %}
-  {% for f in council_folders %}
-  <details>
-    <summary>📁 {{ f.title }}</summary>
-    <pre>{{ f.raw }}</pre>
-  </details>
-  {% endfor %}
-  <p class="disclaimer">{{ disclaimer }}</p>
+  <section>
+    <h2>AI folders</h2>
+    <p class="soft small">Everything inside a folder comes straight from that AI, not from the written report above, so you can check one against the other.</p>
+    <div>
+    {% for f in folders %}{% set sg = f.signal %}
+    <details>
+      <summary>{{ f.title }}<span class="sub">{{ f.summary }}</span></summary>
+      <div class="inner">
+        <p><b>Decision:</b> leans {{ sg.recommended_action }}, {{ "%.1f"|format(sg.probability_up * 100) }}% chance of a rise, expected return {{ sg.expected_return_pct }}% over {{ sg.horizon_days }} days, {{ sg.user_idea_verdict }} your idea.</p>
+        <img src="{{ f.chart }}" alt="reasons chart">
+        {% if sg.key_numbers %}<div class="table-wrap"><table><tr><th>Key number</th><th>Value</th></tr>{% for k, v in sg.key_numbers.items() %}<tr><td>{{ label(k) }}</td><td class="num">{{ v }}</td></tr>{% endfor %}</table></div>{% endif %}
+        {% if sg.track_record %}<div class="table-wrap"><table><tr><th>Track record</th><th>Value</th></tr>{% for k, v in sg.track_record.items() %}<tr><td>{{ label(k) }}</td><td class="num">{{ v }}</td></tr>{% endfor %}</table></div>{% endif %}
+        <details><summary>Raw output (JSON)</summary><pre>{{ f.raw }}</pre></details>
+      </div>
+    </details>
+    {% endfor %}
+    {% for f in council_folders %}
+    <details>
+      <summary>{{ f.title }}</summary>
+      <pre>{{ f.raw }}</pre>
+    </details>
+    {% endfor %}
+    </div>
+  </section>
+
+  <p class="disclaimer foot">{{ disclaimer }}</p>
 </div>
 </body>
 </html>
