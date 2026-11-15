@@ -12,10 +12,26 @@
   --red: #a9443d;
   --red-wash: #f4e4e2;
   --rule: #d3ddd8;
+  --field: #ffffff;
+  --btn: #173a33;
+  --btn-fg: #ffffff;
   --serif: "Instrument Serif", "Iowan Old Style", Georgia, serif;
   --sans: "Instrument Sans", "Segoe UI", system-ui, sans-serif;
   --r-big: 14px;
   --r-small: 8px;
+}
+/* Dark mode: engraving ink at night. "System" follows the computer; the toggle can force either. */
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --paper: #0e1a17; --sheet: #14231f; --ink: #e3ece8; --ink-soft: #9fb5ad;
+  --teal: #5fc0a8; --teal-wash: #173a33; --amber: #e0ad5a; --amber-wash: #33291a;
+  --red: #e5877e; --red-wash: #3b2523; --rule: #26392f; --field: #0b1613;
+  --btn: #5fc0a8; --btn-fg: #0b1613; color-scheme: dark;
+} }
+:root[data-theme="dark"] {
+  --paper: #0e1a17; --sheet: #14231f; --ink: #e3ece8; --ink-soft: #9fb5ad;
+  --teal: #5fc0a8; --teal-wash: #173a33; --amber: #e0ad5a; --amber-wash: #33291a;
+  --red: #e5877e; --red-wash: #3b2523; --rule: #26392f; --field: #0b1613;
+  --btn: #5fc0a8; --btn-fg: #0b1613; color-scheme: dark;
 }
 * { box-sizing: border-box; }
 html { -webkit-text-size-adjust: 100%; }
@@ -41,6 +57,10 @@ button, input, select { font: inherit; color: inherit; }
 .views a { padding: 7px 12px; border-radius: 999px; text-decoration: none; color: var(--ink-soft); font-weight: 500; }
 .views a:hover { color: var(--ink); background: var(--paper); }
 .views a[aria-current="page"] { color: var(--ink); background: var(--teal-wash); }
+.theme { padding: 8px 12px; border: 1px solid var(--rule); border-radius: 999px; background: var(--sheet); color: var(--ink);
+  cursor: pointer; display: flex; align-items: center; gap: 8px; font-weight: 500; }
+.theme svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.8; }
+.theme:hover { border-color: var(--ink-soft); }
 .picker { display: flex; align-items: center; gap: 10px; font-weight: 500; }
 .picker span { color: var(--ink-soft); }
 .picker select { min-width: 220px; padding: 9px 12px; border: 1px solid var(--rule); border-radius: var(--r-small); background: var(--sheet); }
@@ -58,15 +78,15 @@ main { max-width: 1240px; margin: 0 auto; padding: 32px 24px 80px; }
 .field > span, .field legend { font-weight: 500; font-size: 0.92rem; }
 .field em { font-style: normal; font-weight: 400; color: var(--ink-soft); }
 .field input, .field select { width: 100%; padding: 10px 12px; border: 1px solid var(--rule); border-radius: var(--r-small);
-  background: #fff; font-variant-numeric: tabular-nums; }
+  background: var(--field); font-variant-numeric: tabular-nums; }
 .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .toggle { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; background: var(--paper); padding: 4px; border-radius: var(--r-small); }
 .toggle input { position: absolute; opacity: 0; }
 .toggle span { display: block; text-align: center; padding: 8px 6px; border-radius: 6px; cursor: pointer; font-size: 0.9rem; color: var(--ink-soft); }
 .toggle input:checked + span { background: var(--sheet); color: var(--ink); box-shadow: 0 0 0 1px var(--rule); font-weight: 500; }
 .toggle input:focus-visible + span { outline: 2px solid var(--teal); }
-.primary { padding: 13px 18px; border: 0; border-radius: var(--r-small); background: var(--ink); color: #fff; font-weight: 600; cursor: pointer; }
-.primary:hover { background: var(--teal); }
+.primary { padding: 13px 18px; border: 0; border-radius: var(--r-small); background: var(--btn); color: var(--btn-fg); font-weight: 600; cursor: pointer; }
+.primary:hover { filter: brightness(1.12); }
 .primary:disabled { opacity: 0.55; cursor: progress; }
 .secondary { padding: 11px 16px; border: 1px solid var(--rule); border-radius: var(--r-small); background: var(--sheet); font-weight: 500; cursor: pointer; }
 .secondary:hover { border-color: var(--ink-soft); }
@@ -103,9 +123,10 @@ main { max-width: 1240px; margin: 0 auto; padding: 32px 24px 80px; }
 .reason { max-width: 70ch; }
 .actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-top: 4px; }
 .actions .approve { background: var(--teal); }
-.actions .approve:hover { background: var(--ink); }
+.actions .approve { color: var(--btn-fg); }
+.actions .approve:hover { filter: brightness(1.12); }
 .decline-row { display: flex; gap: 8px; flex-wrap: wrap; }
-.decline-row input { flex: 1; min-width: 200px; padding: 10px 12px; border: 1px solid var(--rule); border-radius: var(--r-small); background: #fff; }
+.decline-row input { flex: 1; min-width: 200px; padding: 10px 12px; border: 1px solid var(--rule); border-radius: var(--r-small); background: var(--field); }
 .toast { padding: 12px 14px; border-radius: var(--r-small); background: var(--teal-wash); }
 .toast.bad { background: var(--red-wash); }
 

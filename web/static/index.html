@@ -8,6 +8,9 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=Instrument+Serif&display=swap">
 <link rel="stylesheet" href="/static/app.css">
+<script>
+  try { const t = localStorage.getItem("mc-theme"); if (t === "light" || t === "dark") document.documentElement.dataset.theme = t; } catch (e) {}
+</script>
 </head>
 <body>
 <header class="bar">
@@ -21,6 +24,10 @@
       <a href="#portfolio" data-view="portfolio">Portfolio</a>
       <a href="#method" data-view="method">How it works</a>
     </nav>
+    <button class="theme" id="theme" type="button" aria-label="Change colour theme">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 3.5a8.5 8.5 0 0 0 0 17z" fill="currentColor"/></svg>
+      <span id="theme-label">System</span>
+    </button>
     <label class="picker">
       <span>Council</span>
       <select id="program" aria-label="Choose which trained council to use"></select>

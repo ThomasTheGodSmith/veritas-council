@@ -209,4 +209,20 @@ async function loadPortfolio() {
   table($("#pending"), d.pending);
 }
 
+// --------------------------------------------------------------------------- colour theme
+const THEMES = ["system", "light", "dark"];
+function applyTheme(name) {
+  if (name === "system") delete document.documentElement.dataset.theme;
+  else document.documentElement.dataset.theme = name;
+  $("#theme-label").textContent = name[0].toUpperCase() + name.slice(1);
+  try { localStorage.setItem("mc-theme", name); } catch (e) {}
+}
+let theme = "system";
+try { theme = localStorage.getItem("mc-theme") || "system"; } catch (e) {}
+applyTheme(THEMES.includes(theme) ? theme : "system");
+$("#theme").addEventListener("click", () => {
+  const next = THEMES[(THEMES.indexOf(document.documentElement.dataset.theme || "system") + 1) % THEMES.length];
+  applyTheme(next);
+});
+
 init();

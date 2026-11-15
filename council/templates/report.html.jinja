@@ -8,8 +8,11 @@
 <style>
   /* Same identity as the website: banknote engraving. Paper ground, engraving-green ink, one rosette. */
   :root { --paper:#f3f6f4; --sheet:#fbfcfb; --ink:#173a33; --soft:#4d6660; --teal:#1e6e61; --teal-w:#e2eeea;
-          --amber:#b9822a; --amber-w:#f5ecd9; --red:#a9443d; --red-w:#f4e4e2; --rule:#d3ddd8;
+          --amber:#b9822a; --amber-w:#f5ecd9; --red:#a9443d; --red-w:#f4e4e2; --rule:#d3ddd8; --disc:#7a5414;
           --serif:"Instrument Serif","Iowan Old Style",Georgia,serif; --sans:"Instrument Sans","Segoe UI",system-ui,sans-serif; }
+  @media (prefers-color-scheme: dark) { :root { --paper:#0e1a17; --sheet:#14231f; --ink:#e3ece8; --soft:#9fb5ad;
+    --teal:#5fc0a8; --teal-w:#173a33; --amber:#e0ad5a; --amber-w:#33291a; --red:#e5877e; --red-w:#3b2523; --rule:#26392f;
+    --disc:#e8c88f; color-scheme: dark; } }
   * { box-sizing: border-box; }
   body { margin: 0; background: var(--paper); color: var(--ink); font: 15.5px/1.6 var(--sans); }
   .mc { max-width: 980px; margin: 0 auto; padding: 32px 24px 64px; display: grid; gap: 34px; }
@@ -29,7 +32,7 @@
   .meta div { display: grid; }
   .meta dt { font-size: .78rem; color: var(--soft); }
   .meta dd { margin: 0; font-weight: 500; }
-  .disclaimer { background: var(--amber-w); color: #7a5414; padding: 8px 14px; border-radius: 8px; font-weight: 500; }
+  .disclaimer { background: var(--amber-w); color: var(--disc); padding: 8px 14px; border-radius: 8px; font-weight: 500; }
 
   .note { position: relative; overflow: hidden; background: var(--sheet); border: 1px solid var(--rule); border-radius: 14px; padding: 30px 32px; display: grid; gap: 14px; }
   .note svg.rosette { position: absolute; right: -80px; top: 50%; transform: translateY(-50%); width: 430px; height: 430px; }
